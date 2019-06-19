@@ -1,12 +1,7 @@
 using Test
 using Headless.Browser
-using Headless.Protocol
+using Headless.Protocol: Runtime
 
-
-# chrome = Browser.Chrome()
-
- #Start should block until chrome has started for now just sleep
- #Should also block until chrome has fully shutdown curretly just calling sleep
 @testset "browser open and close" begin
     @testset "free port" begin
          chrome = Browser.Chrome()

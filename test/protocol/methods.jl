@@ -1,6 +1,6 @@
 using Test, Plumber
 using Headless:Browser, Protocol
-using Headless.Protocol: Page, DOM, protocols, create_command, rmlines
+using Headless.Protocol: Page, DOM, Runtime, protocols, create_command, rmlines
 
 @testset "create_command" begin
     @testset "args" begin
@@ -41,14 +41,18 @@ end
 
 
 @testset "Page" begin
-    @testset "navigate" begin
 
+    #TODO handle https and trailing slashes!
+    @testset "navigate" begin
+        chrome = Browser.Chrome(headless=true)
+        tab1 = chrome.tabs[:tab1]
+        url = "https://www.facebook.com/"
+        tab1(Page.navigate(url))
+        @test Runtime.evaluate("window.location.href") |> tab1 == url
+        Browser.close(chrome)
     end
 end
 #
 
-chrome = Browser.Chrome(headless=false)
-Browser.close(chrome)
-tab1 = chrome.tabs[:tab1]
-tab1(Page.navigate("http://www.facebook.com"))
-Page.navigate("http://www.facebook.com")
+#TODO first time browser opens without user data it will ask for permisions
+# kill_port()

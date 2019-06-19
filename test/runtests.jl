@@ -1,2 +1,3 @@
-include("tab.jl")
-include("browser.jl")
+include("browser/tab.jl")
+include("browser/browser.jl")
+include("protocol/methods.jl")

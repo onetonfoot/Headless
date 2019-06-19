@@ -10,7 +10,7 @@ mutable struct Tab
     command_ids
 end
 
-function Tab(ws_url::AbstractString)
+function Tab(ws_url::T) where T <: AbstractString
     #input should be some kind of init script
     input = Signal(nothing)
     output = Signal(nothing)
@@ -25,9 +25,9 @@ function Tab(ws_url::AbstractString)
 
     Signal(output) do x
         @match x begin
-            Dict("id" => id) => begin
-                tab.command_ids[id] = unpack_result(x["result"]["result"])
-             end
+            Dict("id" => id, "result" => result) => begin
+                tab.command_ids[id] = unpack_result(result)
+            end
             nothing => nothing #this for first signal
             x => "Match was unknown $x"
         end
@@ -37,11 +37,15 @@ end
 
 #TODO this not type stable :/
 function unpack_result(x)
+
     @match x begin
-        Dict("value" => n, "type" => t) && if t == "number" end => n
-        Dict("value" => s, "type" => t) && if t == "string" end => s
-        Dict("type" => t, "objectId" => j) && if t == "object" end => JSON.parse(j)
-        _ => error("no match js")
+        Dict("result" => result) => @match result begin
+            Dict("value" => n, "type" => t) && if t == "number" end => n
+            Dict("value" => s, "type" => t) && if t == "string" end => s
+            Dict("type" => t, "objectId" => j) && if t == "object" end => JSON.parse(j)
+            _ => error("no match js")
+        end
+        _ => x
     end
 end
 

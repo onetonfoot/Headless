@@ -23,7 +23,7 @@ function Chrome(;headless=true, port=9222)
 
     process = start(;headless=headless, port=port)
     ws_urls = get_ws_urls(port)
-    tabs = Dict(Symbol("tab$i")=> tab for (i, tab) in enumerate(Tab.(ws_urls)))
+    tabs = Dict(Symbol("tab$i")=> Tab(ws_url) for (i, ws_url) in enumerate(ws_urls))
     Chrome(
         process,
         port,

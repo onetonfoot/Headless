@@ -1,6 +1,9 @@
 using Headless, Test
-import Headless: Browser, Protocol
-using Sockets, Signals
+import Headless: Browser
+using Headless.Protocol: Runtime
+
+#TODO first time browser opens without user data it will ask for permisions
+#and doesn't create a single tab
 
 @testset "tab" begin
     @testset "single tab" begin
@@ -16,11 +19,10 @@ end
     @testset "strings and numbers" begin
         chrome = Browser.Chrome()
         tab  = chrome.tabs[:tab1]
-        @test tab(Protocol.evaluate("10")) == 10
-        @test tab(Protocol.evaluate("'hello'")) == "hello"
+        @test tab(Runtime.evaluate("10")) == 10
+        @test tab(Runtime.evaluate("'hello'")) == "hello"
         Browser.close(chrome)
     end
 
     #TODO how to handle objects?
-
 end
