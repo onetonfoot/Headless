@@ -77,20 +77,25 @@ function (tab::Tab)(cmd::Command; timeout=timeout)
     tab.command_ids[cmd.id] = nothing
     tab.input(cmd)
 
-    timedwait(float(timeout)) do
-        !isnothing(tab.command_ids[cmd.id])
+    timederror(ErrorException("timedout"), timeout) do
+        value = tab.command_ids[cmd.id]
+        value isa ErrorException && throw(value)
+        !isnothing(value)
     end
 
-    if isnothing(tab.command_ids[cmd.id])
-        error("timedout")
-    elseif tab.command_ids[cmd.id] isa ErrorException
-        throw(tab.command_ids[cmd.id])
-    else
-        result = tab.command_ids[cmd.id]
-        delete!(tab.command_ids, cmd.id)
-        result
-    end
+    result = tab.command_ids[cmd.id]
+    delete!(tab.command_ids, cmd.id)
+    result
 end
+
+#If condition returns false throw the Error
+#else execute the function
+function timederror(testcb::Function, error::Exception, secs::Number; pollint=0.1)
+    result = timedwait(testcb, float(secs); pollint=pollint)
+    result != :ok && throw(error)
+    true
+end
+
 
 function (tab::Tab)(event::Event)
     #TODO decide on behaviour in this case

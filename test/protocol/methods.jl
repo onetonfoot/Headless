@@ -52,7 +52,3 @@ end
         Browser.close(chrome)
     end
 end
-
-#Add
-# Runtime.evaluate("x = 10") |> tab1
-# Runtime.evaluate("x * 100") |> tab1

@@ -8,10 +8,9 @@ export start, Tab
 
 include("tab.jl")
 
-
-
-
-#should add cmdline flags
+#TODO add init script that will optional be executed
+#when you open a new tab
+#TODO pass optional command line flags
 mutable struct Chrome
     process
     # host #would be nice to be possible to lanch on something not localhost
@@ -43,14 +42,7 @@ function isportfree(port::Int)
     end
 end
 
-#instead of returning tasks
-#should return a struct that will kill the task
-#once the reference to the struct is gone!
-
-#finializer
 function start(;headless=true, port=9222)
-
-
     if isportfree(port)
         cmd = `google-chrome  --remote-debugging-port=$port --user-data-dir=/tmp/user_data`
         if headless
@@ -70,15 +62,11 @@ end
 
 
 function close(browser::Chrome)
-    # map(close, browser.tabs)
+    map(close, collect(values(browser.tabs)))
     kill(browser.process)
-
-    #should implement time out function
-    #that errors if task doesn't close?
-
-    #TODO replace with timed wait
-    while !process_exited(browser.process)
-        sleep(0.01)
+    err = ErrorException("timedout closing browser")
+    timederror(err, 5) do
+        process_exited(browser.process)
     end
 end
 
@@ -118,7 +106,6 @@ function closetab!(browser, tabname::Symbol; timeout=3)
 end
 
 function activatetab!(browser, tabname::Symbol; timeout=3)
-
     try
         tab = browser.tabs[tabname]
         url = "http://localhost:$(browser.port)/json/activate/$(tab.id)"
@@ -129,8 +116,5 @@ function activatetab!(browser, tabname::Symbol; timeout=3)
     end
     browser
 end
-
-
-
 
 end  # modul Browser

@@ -25,14 +25,3 @@ global_logger(logger)
         Browser.close(chrome)
     end
 end
-
-# chrome = Browser.Chrome(headless=false)
-# tab1 = chrome.tabs[:tab1]
-# #First call agter this timesout?
-# Network.enable() |> tab1
-# l = []
-# Network.loading_finished() do x
-#     push!(l,x)
-# end |> tab1
-# Page.navigate("https://www.facebook.com") |> tab1
-# # Browser.close(chrome)
