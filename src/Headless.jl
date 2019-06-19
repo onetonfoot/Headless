@@ -5,11 +5,10 @@ import JSON
 
 export Browser, Protocol
 
-include("browser/Browser.jl")
-using .Browser
-
 include("protocol/Protocol.jl")
-using .Protocol
+include("browser/Browser.jl")
 
+using .Browser
+using .Protocol
 
 end # module

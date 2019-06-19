@@ -52,7 +52,7 @@ end
         Browser.close(chrome)
     end
 end
-#
 
-#TODO first time browser opens without user data it will ask for permisions
-# kill_port()
+#Add
+# Runtime.evaluate("x = 10") |> tab1
+# Runtime.evaluate("x * 100") |> tab1
