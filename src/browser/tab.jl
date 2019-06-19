@@ -3,9 +3,14 @@ import HTTP
 using ..Protocol: Command, Event, Runtime
 using Plumber
 
-
 const init_script = read(joinpath(@__DIR__, "init.js"),String)
 const timeout = 3
+
+function timederror(testcb::Function, error::Exception, secs::Number; pollint=0.1)
+    result = timedwait(testcb, float(secs); pollint=pollint)
+    result != :ok && throw(error)
+    true
+end
 
 mutable struct Tab
     process
@@ -50,7 +55,6 @@ end
 
 #TODO this not type stable :/
 function handle_result(x)
-
     @match x begin
         Dict("result" => result) => @match result begin
             Dict("value" => n, "type" => t) && if t == "number" end => n
@@ -88,13 +92,6 @@ function (tab::Tab)(cmd::Command; timeout=timeout)
     result
 end
 
-#If condition returns false throw the Error
-#else execute the function
-function timederror(testcb::Function, error::Exception, secs::Number; pollint=0.1)
-    result = timedwait(testcb, float(secs); pollint=pollint)
-    result != :ok && throw(error)
-    true
-end
 
 
 function (tab::Tab)(event::Event)
@@ -124,18 +121,11 @@ end
 
 function close(tab::Tab; timeout=timeout)
     @async Base.throwto(tab.process,InterruptException())
-
-    taskdone = false
-    timedwait(float(timeout)) do
-        taskdone = istaskdone(tab.process)
-        taskdone
+    err = ErrorException("tab didn't close")
+    timederror(err, timeout) do
+        istaskdone(tab.process)
     end
-
-    if taskdone
-        true
-    else
-        error("tab didn't close")
-    end
+    true
 end
 
 #Should validate the url more throughly
@@ -157,27 +147,18 @@ end
 function ws_open(url, input, output; timeout=timeout)
 
     task = @async WebSockets.open(url) do ws
-
         sender = Signal(input) do cmd
             write(ws, JSON.json(cmd))
         end
-
         while !eof(ws)
             data = readavailable(ws)
             data |> String |> JSON.parse |> output
        end
     end
 
-    #This timeout patttern can be refactored into a macro or function
-    taskstarted = false
-    timedwait(float(timeout)) do
-        taskstarted = istaskstarted(task)
-        taskstarted
+    err = ErrorException("timed out opening ws")
+    timederror(err, timeout) do
+        istaskstarted(task)
     end
-
-    if taskstarted
-        return task
-    else
-        error("timed out opening ws")
-    end
+    task
 end
