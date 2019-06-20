@@ -6,10 +6,21 @@ const protocols = @pipe read(joinpath(@__DIR__,"./protocol.json") ,String) |>
     JSON.parse |> filter(x -> !haskey(x,"experimental"), _["domains"] ) |>
     Dict(p["domain"] =>p for p in _)
 
-struct Command
+#using linked list to acheive composition but probaly a better way :/
+mutable struct Command
     id
     method
     params
+    next
+    prev
+end
+
+Command(id, method, params) = Command(id, method, params, nothing, nothing)
+
+function (c2::Command)(c1::Command)
+    c1.next = c2
+    c2.prev = c1
+    c2
 end
 
 function JSON.lower(cmd::Command)

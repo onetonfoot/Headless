@@ -39,7 +39,6 @@ using Headless.Protocol: Page, DOM, Runtime, protocols, create_command, rmlines
     end
 end
 
-
 @testset "Page" begin
 
     #TODO handle https and trailing slashes!

@@ -1,11 +1,12 @@
 using Signals, MLStyle
 import HTTP
-using ..Protocol: Command, Event, Runtime
+using ..Protocol: Command, Event, Runtime, Page
 using Plumber
 
 const init_script = read(joinpath(@__DIR__, "init.js"),String)
 const timeout = 3
 
+#This doesn't work becasuse can't throw a error from inside timedwait! tescb
 function timederror(testcb::Function, error::Exception, secs::Number; pollint=0.1)
     result = timedwait(testcb, float(secs); pollint=pollint)
     result != :ok && throw(error)
@@ -23,7 +24,9 @@ end
 
 function Tab(ws_url::T; init_script=init_script) where T <: AbstractString
 
-    input = Signal(Runtime.evaluate(init_script); strict_push = true)
+    #will need to change this method name
+    init_cmd = Page.add_script_toevaluate_onnew_document(init_script)
+    input = Signal(init_cmd; strict_push = true)
     output = Signal(nothing; strict_push = true)
 
     process = ws_open(ws_url, input, output)
@@ -32,38 +35,40 @@ function Tab(ws_url::T; init_script=init_script) where T <: AbstractString
     event_listeners = Dict()
     tab = Tab(process, input, output, id, command_ids, event_listeners)
 
-    output_listener = Signal(output) do x
 
+    output_listener = Signal(output) do x
         @match x begin
-            Dict("id" => id, "result" => result) => begin
-                tab.command_ids[id] = handle_result(result)
-            end
             Dict("id" => id, "error" => e) => begin
                 tab.command_ids[id] = handle_error(e)
             end
-            Dict("id" => id) => begin
-                print("ID:",id)
-                tab.command_ids[id] = id
+            Dict("id" => id, "result" => result) => begin
+                tab.command_ids[id] = handle_result(result)
             end
             nothing => nothing #this for first signal
             x => "Match was unknown $x"
         end
     end
+    init_cmd |> input
     event_listeners["output_listener"] = output_listener
     tab
 end
 
-#TODO this not type stable :/
 function handle_result(x)
     @match x begin
+        Dict("exceptionDetails" => details) => begin
+            #TODO create a proper error hierachy
+            ErrorException(details["exception"]["description"])
+        end
         Dict("result" => result) => @match result begin
             Dict("value" => n, "type" => t) && if t == "number" end => n
             Dict("value" => s, "type" => t) && if t == "string" end => s
+
+            #Unsure with this case
             Dict("type" => t, "objectId" => j) && if t == "object" end => JSON.parse(j)
             _ => x
         end
         #like with Network.enable
-        Dict() => true
+        x && if x == Dict() end => true
         _ => x
     end
 end
@@ -78,21 +83,40 @@ end
 
 function (tab::Tab)(cmd::Command; timeout=timeout)
 
-    tab.command_ids[cmd.id] = nothing
-    tab.input(cmd)
-
-    timederror(ErrorException("timedout"), timeout) do
-        value = tab.command_ids[cmd.id]
-        value isa ErrorException && throw(value)
-        !isnothing(value)
+    if istaskdone(tab.process)
+        error("tab closed")
     end
 
-    result = tab.command_ids[cmd.id]
-    delete!(tab.command_ids, cmd.id)
-    result
+    while !isnothing(cmd.prev)
+        cmd = cmd.prev
+    end
+
+    while true
+        tab.command_ids[cmd.id] = nothing
+        tab.input(cmd)
+
+        result = nothing
+        t = timedwait(float(timeout)) do
+            result = tab.command_ids[cmd.id]
+            # value isa ErrorException && throw(value)
+            !isnothing(result)
+        end
+
+        if t == :timed_out
+            error("timedout")
+        elseif result isa ErrorException
+            throw(result)
+        end
+
+        delete!(tab.command_ids, cmd.id)
+
+        if isnothing(cmd.next)
+            return result
+        else
+            cmd = cmd.next
+        end
+    end
 end
-
-
 
 function (tab::Tab)(event::Event)
     #TODO decide on behaviour in this case
@@ -132,7 +156,6 @@ end
 function add_port(url, port)
     replace(url, "/devtools" => ":$port/devtools")
 end
-
 
 #Technically this could get the ws_url for a browser not on local host
 #allowing you to control headless browsers running on multiple  machines

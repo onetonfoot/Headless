@@ -4,7 +4,7 @@ using Signals
 import JSON, HTTP, Sockets, OpenTrick
 import HTTP: WebSockets
 
-export start, Tab
+export newtab!, activatetab!, closetab!, close
 
 include("tab.jl")
 
@@ -31,6 +31,9 @@ function Chrome(;headless=true, port=9222)
 
 end
 
+Base.getindex(browser::Chrome, key::Symbol) = getindex(browser.tabs, key)
+Base.setindex!(browser::Chrome, key::Symbol) = setindex!(browser.tabs, key)
+
 function isportfree(port::Int)
     try
         socket = Sockets.connect("localhost", port)
@@ -42,6 +45,7 @@ function isportfree(port::Int)
     end
 end
 
+#TODO rename open
 function start(;headless=true, port=9222)
     if isportfree(port)
         cmd = `google-chrome  --remote-debugging-port=$port --user-data-dir=/tmp/user_data`
@@ -70,9 +74,8 @@ function close(browser::Chrome)
     end
 end
 
-#TODO All of these are of the same formish
-#so code could probaly be refactored
 
+#TODO rename opentab!
 function newtab!(browser::Chrome, tabname::Symbol ,url)
 
     @assert !haskey(browser.tabs, tabname) "tab already exists"
