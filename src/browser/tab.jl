@@ -3,6 +3,8 @@ import HTTP
 using ..Protocol: Command, Event, Runtime, Page
 using Plumber
 
+#TODO tab should be its own module
+
 const init_script = read(joinpath(@__DIR__, "init.js"),String)
 const timeout = 3
 
@@ -25,7 +27,7 @@ end
 function Tab(ws_url::T; init_script=init_script) where T <: AbstractString
 
     #will need to change this method name
-    init_cmd = Page.add_script_toevaluate_onnew_document(init_script)
+    init_cmd = Page.add_script_to_evaluate_on_new_document(init_script)
     input = Signal(init_cmd; strict_push = true)
     output = Signal(nothing; strict_push = true)
 
@@ -98,7 +100,6 @@ function (tab::Tab)(cmd::Command; timeout=timeout)
         result = nothing
         t = timedwait(float(timeout)) do
             result = tab.command_ids[cmd.id]
-            # value isa ErrorException && throw(value)
             !isnothing(result)
         end
 

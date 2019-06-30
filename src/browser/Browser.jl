@@ -9,6 +9,7 @@ export newtab!, activatetab!, closetab!, close
 include("tab.jl")
 
 #TODO add init script that will optional be executed
+#
 #when you open a new tab
 #TODO pass optional command line flags
 mutable struct Chrome
@@ -65,7 +66,7 @@ end
 
 
 
-function close(browser::Chrome)
+function Base.close(browser::Chrome)
     map(close, collect(values(browser.tabs)))
     kill(browser.process)
     err = ErrorException("timedout closing browser")

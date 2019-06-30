@@ -28,6 +28,6 @@ const modules  = map(collect(keys(protocols))) do k
 end
 
 eval.(modules)
-
+Page.include("page.jl")
 
 end  # module    Protocol

@@ -6,7 +6,6 @@ const protocols = @pipe read(joinpath(@__DIR__,"./protocol.json") ,String) |>
     JSON.parse |> filter(x -> !haskey(x,"experimental"), _["domains"] ) |>
     Dict(p["domain"] =>p for p in _)
 
-#using linked list to acheive composition but probaly a better way :/
 mutable struct Command
     id
     method
@@ -30,7 +29,6 @@ function JSON.lower(cmd::Command)
          :params => params)
 end
 
-
 function has_optional_args(d)
     haskey(d,"parameters") || return false
     map( x -> haskey(x, "optional") ,d["parameters"]) |> any
@@ -38,7 +36,6 @@ end
 
 is_optional_arg(d) = haskey(d, "optional")
 get_arg_names(d) = map(x -> x["name"], d["parameters"])
-
 
 function create_command(d, domain_name)
 

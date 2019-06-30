@@ -8,7 +8,7 @@ function camel_to_snake(x)
     # remove_script_toevaluate_onload
     # clear_compilation_cache
     # remove_script_toevaluate_onnew_document
-    replace(x, r"(.)([A-Z][a-z+])" =>s"\1_\2") |> lowercase
+    replace(x, r"([a-z])([A-Z])" =>s"\1_\2") |> lowercase
 end
 
 camel_to_sym(x) = camel_to_snake(x) |> Symbol
