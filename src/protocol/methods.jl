@@ -6,6 +6,7 @@ const protocols = @pipe read(joinpath(@__DIR__,"./protocol.json") ,String) |>
     JSON.parse |> filter(x -> !haskey(x,"experimental"), _["domains"] ) |>
     Dict(p["domain"] =>p for p in _)
 
+#TODO Since a commands is a doubley linked list implemnt iteration traits
 mutable struct Command
     id
     method

@@ -4,10 +4,6 @@ using MLStyle
 
 function camel_to_snake(x)
     x = replace(x, "JavaScript" => "javascript" )
-    #TODO handle these cases
-    # remove_script_toevaluate_onload
-    # clear_compilation_cache
-    # remove_script_toevaluate_onnew_document
     replace(x, r"([a-z])([A-Z])" =>s"\1_\2") |> lowercase
 end
 

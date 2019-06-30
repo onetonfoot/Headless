@@ -24,5 +24,13 @@ end
         Browser.close(chrome)
     end
 
-    #TODO how to handle objects?
+    @testset "chaining commannds" begin
+        chrome = Browser.Chrome()
+        tab  = chrome.tabs[:tab1]
+        result =  Runtime.evaluate("x = 10") |>
+        Runtime.evaluate("x * 2") |>
+        tab
+        @test result == 20
+        Browser.close(chrome)
+    end
 end

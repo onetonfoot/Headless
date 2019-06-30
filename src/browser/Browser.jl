@@ -66,7 +66,7 @@ end
 
 
 
-function Base.close(browser::Chrome)
+function close(browser::Chrome)
     map(close, collect(values(browser.tabs)))
     kill(browser.process)
     err = ErrorException("timedout closing browser")

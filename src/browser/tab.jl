@@ -83,6 +83,7 @@ function handle_error(e)
     end
 end
 
+
 function (tab::Tab)(cmd::Command; timeout=timeout)
 
     if istaskdone(tab.process)
@@ -96,7 +97,6 @@ function (tab::Tab)(cmd::Command; timeout=timeout)
     while true
         tab.command_ids[cmd.id] = nothing
         tab.input(cmd)
-
         result = nothing
         t = timedwait(float(timeout)) do
             result = tab.command_ids[cmd.id]
@@ -110,7 +110,6 @@ function (tab::Tab)(cmd::Command; timeout=timeout)
         end
 
         delete!(tab.command_ids, cmd.id)
-
         if isnothing(cmd.next)
             return result
         else
