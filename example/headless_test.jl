@@ -23,3 +23,6 @@ Page.navigate("https://recaptcha-demo.appspot.com/recaptcha-v3-request-scores.ph
 chrome[:tab2]
 
 Browser.close(chrome)
+
+
+# /html/body/div[4]/div/main/div[2]/div/div[3]/div[2]/table/tbody/tr[83]

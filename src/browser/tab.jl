@@ -8,7 +8,7 @@ using Plumber
 const init_script = read(joinpath(@__DIR__, "init.js"),String)
 const timeout = 3
 
-#This doesn't work becasuse can't throw a error from inside timedwait! 
+#This doesn't work becasuse can't throw a error from inside timedwait!
 function timederror(testcb::Function, error::Exception, secs::Number; pollint=0.1)
     result = timedwait(testcb, float(secs); pollint=pollint)
     result != :ok && throw(error)
@@ -102,7 +102,7 @@ function (tab::Tab)(cmd::Command; timeout=timeout)
     end
 
     # Currently timeout applies to each indivdual command, is this
-    # the ideal semantics? Maybe it should apply to the whole chain instead
+    # the ideal semantics? Really it should apply to the whole chain instead
     while true
         tab.command_ids[cmd.id] = nothing
         tab.input(cmd)
