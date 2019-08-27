@@ -1,4 +1,3 @@
-
 let l = []
 
 getEleAttributes = (ele) => {
@@ -23,7 +22,7 @@ document.addEventListener("dblclick", function (event) {
         .filter(x => x instanceof HTMLElement)
         .map(x => getEleAttributes(x))
     l.push(path)
-    console.log("path", path)
+    console.log("dblclicked", path)
 })
 
 
@@ -44,4 +43,3 @@ const zip = (...args) => _zip('every', args);
 // zip(...l)
 
 //Zip elements together and perform a sequence alignment of the html
-

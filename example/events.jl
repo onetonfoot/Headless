@@ -6,13 +6,20 @@ import JSON
 chrome = Browser.Chrome(headless=false)
 
 # Hacker new example
-json = Page.add_script_to_evaluate_on_new_document(init_script) |>
-Page.navigate("https://news.ycombinator.com/") |>
-Runtime.evaluate("""
-o = [...document.querySelectorAll(".storylink")].map((x) => {
-  return {"link" : x.href, "title" : x.innerHTML}
-})
-JSON.stringify(o)
-""") |> chrome[:tab1]
 
-Base.close(chrome)
+Network.response_received() do res
+    @show res
+end |> chrome[:tab1]
+
+DOM.enable() |> chrome[:tab1]
+
+doc_loaded = DOM.document_updated() do x
+    print("page fully loaded event fired")
+end
+
+doc_loaded |> chrome[:tab1]
+
+# delete!(chrome[:tab1], doc_loaded)
+
+Page.navigate("https://news.ycombinator.com/") |> chrome[:tab1]
+Browser.close(chrome)

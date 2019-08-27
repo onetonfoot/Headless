@@ -1,5 +1,5 @@
 using Headless.Protocol: Page, Network
-using Headless.Browser: init_script, newtab!, closetab!
+using Headless.Browser: init_script, opentab!, closetab!
 using Headless
 
 
@@ -15,7 +15,7 @@ chrome[:tab1]
 sleep(1)
 Page.handlejavascript_dialog(true) |> chrome[:tab1]
 
-newtab!(chrome, :tab2)
+opentab!(chrome, :tab2)
 
 Page.enable() |>
 Page.add_script_to_evaluate_on_new_document(init_script) |>

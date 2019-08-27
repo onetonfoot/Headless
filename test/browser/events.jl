@@ -13,7 +13,7 @@ global_logger(logger)
     @testset "loading_finished" begin
         chrome = Browser.Chrome(headless=false)
         tab1 = chrome.tabs[:tab1]
-        #First call agter this timesout?
+        
         Network.enable() |> tab1
         l = []
         Network.loading_finished() do x

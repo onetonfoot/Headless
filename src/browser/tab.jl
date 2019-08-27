@@ -3,12 +3,12 @@ import HTTP
 using ..Protocol: Command, Event, Runtime, Page
 using Plumber
 
-#TODO tab should be its own module
+#TODO tab should be its own module?
 
 const init_script = read(joinpath(@__DIR__, "init.js"),String)
 const timeout = 3
 
-#This doesn't work becasuse can't throw a error from inside timedwait! tescb
+#This doesn't work becasuse can't throw a error from inside timedwait! 
 function timederror(testcb::Function, error::Exception, secs::Number; pollint=0.1)
     result = timedwait(testcb, float(secs); pollint=pollint)
     result != :ok && throw(error)
@@ -26,7 +26,6 @@ end
 
 function Tab(ws_url::T; init_script=init_script) where T <: AbstractString
 
-    #will need to change this method name
     init_cmd = Page.add_script_to_evaluate_on_new_document(init_script)
     input = Signal(init_cmd; strict_push = true)
     output = Signal(nothing; strict_push = true)
@@ -37,17 +36,20 @@ function Tab(ws_url::T; init_script=init_script) where T <: AbstractString
     event_listeners = Dict()
     tab = Tab(process, input, output, id, command_ids, event_listeners)
 
-
     output_listener = Signal(output) do x
         @match x begin
             Dict("id" => id, "error" => e) => begin
-                tab.command_ids[id] = handle_error(e)
+                tab.command_ids[id] = if haskey(e, "message")
+                    BrowserError(e["message"])
+                else
+                    BrowserError("Unknown Error")
+                end
             end
             Dict("id" => id, "result" => result) => begin
                 tab.command_ids[id] = handle_result(result)
             end
             nothing => nothing #this for first signal
-            x => "Match was unknown $x"
+            x => ErrorException("Tab received unknown response $x")
         end
     end
     init_cmd |> input
@@ -55,17 +57,31 @@ function Tab(ws_url::T; init_script=init_script) where T <: AbstractString
     tab
 end
 
+
+struct TimedoutError <: Exception
+    time
+end
+
+struct BrowserError <: Exception
+    msg
+end
+
+struct JsError <: Exception
+    msg
+end
+
+
 function handle_result(x)
     @match x begin
         Dict("exceptionDetails" => details) => begin
             #TODO create a proper error hierachy
-            ErrorException(details["exception"]["description"])
+            JsError(details["exception"]["description"])
         end
         Dict("result" => result) => @match result begin
             Dict("value" => n, "type" => t) && if t == "number" end => n
             Dict("value" => s, "type" => t) && if t == "string" end => s
 
-            #Unsure with this case
+            #How to best pass back javascript objects to the user?
             Dict("type" => t, "objectId" => j) && if t == "object" end => JSON.parse(j)
             _ => x
         end
@@ -75,25 +91,18 @@ function handle_result(x)
     end
 end
 
-function handle_error(e)
-    if haskey(e,"message")
-        ErrorException(e["message"])
-    else
-        ErrorException("unknown error")
-    end
-end
-
-
 function (tab::Tab)(cmd::Command; timeout=timeout)
 
     if istaskdone(tab.process)
-        error("tab closed")
+        error("Tab closed")
     end
 
     while !isnothing(cmd.prev)
         cmd = cmd.prev
     end
 
+    # Currently timeout applies to each indivdual command, is this
+    # the ideal semantics? Maybe it should apply to the whole chain instead
     while true
         tab.command_ids[cmd.id] = nothing
         tab.input(cmd)
@@ -104,12 +113,13 @@ function (tab::Tab)(cmd::Command; timeout=timeout)
         end
 
         if t == :timed_out
-            error("timedout")
-        elseif result isa ErrorException
+            throw(TimedoutError(timeout))
+        elseif result isa Exception
             throw(result)
         end
 
         delete!(tab.command_ids, cmd.id)
+
         if isnothing(cmd.next)
             return result
         else
@@ -118,9 +128,13 @@ function (tab::Tab)(cmd::Command; timeout=timeout)
     end
 end
 
+#TODO
+#Would be nice if events could be debounced
+#and also use the rest of the signals functionality
+
 function (tab::Tab)(event::Event)
     #TODO decide on behaviour in this case
-    haskey(tab.event_listeners, event.name) && @warn "listener already exists"
+    haskey(tab.event_listeners, event.name) && @warn "Event listener $(event.name) already exists"
 
     condition = Signal(tab.output) do x
         haskey(x,"method") && x["method"] == event.name
@@ -130,9 +144,8 @@ function (tab::Tab)(event::Event)
         event.fn(x)
     end
 
-    tab.output
     tab.event_listeners[event.name] = (condition, signal)
-    true #return something more usefull
+    event.name
 end
 
 function Base.delete!(tab::Tab, event::Event)
@@ -152,14 +165,14 @@ function close(tab::Tab; timeout=timeout)
     true
 end
 
-#Should validate the url more throughly
 function add_port(url, port)
     replace(url, "/devtools" => ":$port/devtools")
 end
 
-#Technically this could get the ws_url for a browser not on local host
-#allowing you to control headless browsers running on multiple  machines
-#this would be great for web scrcapping
+# Technically this could get the ws_url for a browser not on local host
+# allowing you to control headless browsers running on multiple  machines
+# this would be great for web scrcapping
+
 function get_ws_urls(port)
     url = "http://localhost:$(port)/json/list"
     json = HTTP.get(url).body |>  String |>  JSON.parse

@@ -2,13 +2,12 @@ using Signals, JSON, Plumber
 using .Protocol: protocols
 using .Utils: camel_to_sym, maybe_add_doc,rmlines
 
-const events = filter(x -> haskey(x[2],"events") , protocols)
+const events = filter(x->haskey(x[2], "events"), protocols)
 
 struct Event
     fn::Function
     name
 end
-
 
 function create_event(d, domain_name)
     ename = "$(domain_name).$(d["name"])"
@@ -27,5 +26,3 @@ function create_event(d, domain_name)
         $b
     end |> rmlines
 end
-
-#TODO remove events

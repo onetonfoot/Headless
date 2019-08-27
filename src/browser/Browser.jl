@@ -4,22 +4,38 @@ using Signals
 import JSON, HTTP, Sockets, OpenTrick
 import HTTP: WebSockets
 
-export newtab!, activatetab!, closetab!, close
+export opentab!, activatetab!, closetab!, close, start
 
 include("tab.jl")
 
-#TODO add init script that will optional be executed
-#
-#when you open a new tab
-#TODO pass optional command line flags
+struct PortAlreadyInUse <: Exception
+    port
+end
+
+struct TabAlreadyExists <: Exception
+    name
+end
+
+struct NoTabExists <: Exception
+    name
+end
+
 mutable struct Chrome
     process
-    # host #would be nice to be possible to lanch on something not localhost
+    # host #would be nice launch on something that's not localhost
     port
     tabs
 end
 
+# TODO add init_fn that will optional be executed
+# each time you open a new tab
+#TODO pass optional command line flags
+
 function Chrome(;headless=true, port=9222)
+
+    if !isportfree(port)
+        PortAlreadyInUse(port)
+    end
 
     process = start(;headless=headless, port=port)
     ws_urls = get_ws_urls(port)
@@ -35,18 +51,9 @@ end
 Base.getindex(browser::Chrome, key::Symbol) = getindex(browser.tabs, key)
 Base.setindex!(browser::Chrome, key::Symbol) = setindex!(browser.tabs, key)
 
-function isportfree(port::Int)
-    try
-        socket = Sockets.connect("localhost", port)
-        Sockets.close(socket)
-        false
-    catch e
-        e != Base.IOError("connect: connection refused (ECONNREFUSED)", -111) && rethrow(e)
-        true
-    end
-end
+#TODO rename to open since it's more consitent with close
+#TODO should check for the binary before and throw helpfull error if it cannot find
 
-#TODO rename open
 function start(;headless=true, port=9222)
     if isportfree(port)
         cmd = `google-chrome  --remote-debugging-port=$port --user-data-dir=/tmp/user_data`
@@ -54,17 +61,15 @@ function start(;headless=true, port=9222)
             cmd = `google-chrome --remote-debugging-port=$port --user-data-dir=/tmp/user_data/ --headless`
         end
         process = pipeline(cmd, stdout=devnull, stderr=devnull) |> open
-        #TODO replace with timed wait
+
         while !process_running(process)
             sleep(0.01)
         end
         process
     else
-        throw(ErrorException("port already in use"))
+        throw(PortAlreadyInUse(port))
     end
 end
-
-
 
 function close(browser::Chrome)
     map(close, collect(values(browser.tabs)))
@@ -75,11 +80,12 @@ function close(browser::Chrome)
     end
 end
 
+function opentab!(browser::Chrome, tabname::Symbol ,url)
 
-#TODO rename opentab!
-function newtab!(browser::Chrome, tabname::Symbol ,url)
+    if haskey(browser.tabs, tabname)
+        throw(TabAlreadyExists(tabname))
+    end
 
-    @assert !haskey(browser.tabs, tabname) "tab already exists"
     response = HTTP.get("http://localhost:$(browser.port)/json/new?$(url)")
     d = response.body |> String |> JSON.parse
     ws_url = add_port(d["webSocketDebuggerUrl"], browser.port)
@@ -88,7 +94,7 @@ function newtab!(browser::Chrome, tabname::Symbol ,url)
     tab
 end
 
-newtab!(browser::Chrome, tabname::Symbol) = newtab!(browser,tabname, "")
+opentab!(browser::Chrome, tabname::Symbol) = opentab!(browser,tabname, "")
 
 function closetab!(browser, tabname::Symbol; timeout=3)
 
@@ -102,7 +108,7 @@ function closetab!(browser, tabname::Symbol; timeout=3)
         browser
     catch e
         if e isa KeyError
-            error("tab doesn't exist")
+            throw(NoTabExists(tabname))
         end
         rethrow(e)
     end
@@ -121,4 +127,15 @@ function activatetab!(browser, tabname::Symbol; timeout=3)
     browser
 end
 
-end  # modul Browser
+function isportfree(port::Int)
+    try
+        socket = Sockets.connect("localhost", port)
+        Sockets.close(socket)
+        false
+    catch e
+        e != Base.IOError("connect: connection refused (ECONNREFUSED)", -111) && rethrow(e)
+        true
+    end
+end
+
+end  # module Browser
