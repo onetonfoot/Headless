@@ -79,7 +79,7 @@ function handle_result(x)
         Dict("result" => result) => @match result begin
             Dict("value" => n, "type" => t) && if t == "number" end => n
             Dict("value" => s, "type" => t) && if t == "string" end => s
-
+            Dict("value" => b, "type" => t) && if t == "boolean" end => b
             # How to best pass back javascript objects to the user?
             Dict("type" => t, "objectId" => j) && if t == "object" end => JSON.parse(j)
             _ => x

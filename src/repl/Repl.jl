@@ -5,8 +5,10 @@ using REPL.TerminalMenus
 
 using ..Browser
 using ..Protocol: Runtime, Target
+using JSON, Gumbo
 
 # To start REPL mode you should pass your own instance of chrome?
+chrome = nothing
 
 function start()
 
@@ -66,7 +68,7 @@ function enable_event_listeners()
     print("Enabling listening for $keys")
 
     # Need to select the correct javascript as oposed to evaluating the whole file
-    js = read(joinpath(@__DIR__,"selection_mode.js"), String)
+    js = read(joinpath(@__DIR__,"event_listeners.js"), String)
 
     for tab in values(chrome.tabs)
         tab(Runtime.evaluate(js))
@@ -83,8 +85,6 @@ function capture_input()
 
 end
 
-
-
 # User should be able to select any number of html elements in the browers
 # After selection is finished should run the elements through some kind of
 # algorithm that can print selector that is in common  with them all
@@ -95,20 +95,36 @@ end
 # Could first try to find it the elements have common attributes between the elements
 # If not maybe there parents do?
 
-# Other option could be to
+function enter_selection_mode()
 
-function selection_mode()
+    global chrome
 
+    active_tab = nothing
+    js = read(joinpath(@__DIR__,"selection_mode.js"), String)
+
+    for tab in values(chrome.tabs)
+        if !tab(Runtime.evaluate("document.hidden"))
+            active_tab = tab
+            active_tab(Runtime.evaluate(js))
+        end
+    end
+
+    if isnothing(active_tab)
+        print("No activate tab!")
+        return
+    end
+
+    print("Select the elements you'd like to scrape. Press any key to finish")
+    readline()
+    # Need to select the correct javascript as oposed to evaluating the whole file
+
+    active_tab(Runtime.evaluate("selectedToString()")) |> JSON.parse .|> parsehtml
 end
 
-# should be able to eneter a css selector in REPL mode and it should
-# run on the current tab
+
+
+# should be able to eneter a css selector in REPL mode and it should run on the current tab
 # should make $ = querySelector and $$ querySelectorAll
-
-function select()
-
-end
-
 
 
 end

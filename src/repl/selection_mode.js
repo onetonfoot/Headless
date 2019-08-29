@@ -1,13 +1,13 @@
-const selectedElements = []
+selectedElements = []
 
-const selectedStyle = `
+selectedStyle = `
     .selected {
         background-color: blue;
         opacity: 0.5;
         border: solid black 1px;
     }
 `
-const hoverStyle = `
+hoverStyle = `
     .hover {
         background-color: yellow;
         opacity: 0.5;
@@ -44,18 +44,15 @@ function handler(event) {
 }
 
 document.addEventListener("click", function (event) {
-    console.log("Clicked element", event.srcElement)
 
     let isSelected = selectedElements.some(element => {
         return element.isSameNode(event.target)
     })
 
     if (!isSelected) {
-        console.log("Adding style to element")
         event.target.classList.add("selected")
         selectedElements.push(event.target)
     } else {
-        console.log("Removing style from element")
         event.target.classList.remove("selected")
         let idx = selectedElements.findIndex(element => {
             return element.isSameNode(event.target)
@@ -63,3 +60,10 @@ document.addEventListener("click", function (event) {
         selectedElements.splice(idx, 1)
     }
 })
+
+
+console.log("Ran selection mode setup")
+
+function selectedToString() {
+    return JSON.stringify(selectedElements.map(element => element.outerHTML))
+}
