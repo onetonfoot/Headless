@@ -5,7 +5,15 @@ import JSON
 
 chrome = Browser.Chrome(headless=false)
 
-# Hacker new example
+# Alterantive API allowing user to add time signals to the event struct
+# To achieve this would probaly have add a signals to field  event struct
+# and overload the debounce/throttle functions to add
+# there signal to the events struct
+
+# Network.response_received() do res
+#     @show res
+# end |> debounce(delay=2.0) |> chrome[:tab1]
+
 
 Network.response_received() do res
     @show res

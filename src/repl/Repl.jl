@@ -44,30 +44,12 @@ function enable_events()
 
     for tab in values(chrome.tabs)
         for event in events
+            #if enable else disale
             tab(event.enable())
         end
     end
 end
 
-function disable_events()
-
-    event2module = Dict(
-        "network" => Protocol.Network,
-        "page" => Protocol.Page,
-    )
-
-    events = collect(keys(event2module))
-    menu = MultiSelectMenu(events)
-    choices = request("Select which events you'd like like to disable" , menu)
-
-    events = [  event2module[events[idx]] for idx in choices ]
-
-    for tab in values(chrome.tabs)
-        for event in events
-            tab(event.disable())
-        end
-    end
-end
 
 # This should allow a user to select which event listners
 # they would like to enable for capture input mode
@@ -108,6 +90,12 @@ end
 # algorithm that can print selector that is in common  with them all
 
 # https://en.wikipedia.org/wiki/Longest_common_substring_problem
+
+
+# Could first try to find it the elements have common attributes between the elements
+# If not maybe there parents do?
+
+# Other option could be to
 
 function selection_mode()
 

@@ -74,18 +74,17 @@ end
 function handle_result(x)
     @match x begin
         Dict("exceptionDetails" => details) => begin
-            #TODO create a proper error hierachy
             JsError(details["exception"]["description"])
         end
         Dict("result" => result) => @match result begin
             Dict("value" => n, "type" => t) && if t == "number" end => n
             Dict("value" => s, "type" => t) && if t == "string" end => s
 
-            #How to best pass back javascript objects to the user?
+            # How to best pass back javascript objects to the user?
             Dict("type" => t, "objectId" => j) && if t == "object" end => JSON.parse(j)
             _ => x
         end
-        #like with Network.enable
+        # like with Network.enable
         x && if x == Dict() end => true
         _ => x
     end
@@ -128,9 +127,6 @@ function (tab::Tab)(cmd::Command; timeout=timeout)
     end
 end
 
-#TODO
-#Would be nice if events could be debounced
-#and also use the rest of the signals functionality
 
 function (tab::Tab)(event::Event)
     #TODO decide on behaviour in this case
@@ -143,6 +139,8 @@ function (tab::Tab)(event::Event)
     signal = when(condition, tab.output) do x
         event.fn(x)
     end
+
+    # TODO It would be nice if events could be debounced and throttled
 
     tab.event_listeners[event.name] = (condition, signal)
     event.name
