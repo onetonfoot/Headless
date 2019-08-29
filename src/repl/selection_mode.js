@@ -1,45 +1,65 @@
-let l = []
+const selectedElements = []
 
-getEleAttributes = (ele) => {
-    let result = ele.getAttributeNames()
-        .map(x => [x, ele.getAttribute(x)]).reduce((obj, x) => {
-            let [k, v] = x
-            obj[k] = v
-            return obj
-        }, {})
-    return result
+const selectedStyle = `
+    .selected {
+        background-color: blue;
+        opacity: 0.5;
+        border: solid black 1px;
+    }
+`
+const hoverStyle = `
+    .hover {
+        background-color: yellow;
+        opacity: 0.5;
+        border: solid black 1px;
+    }
+`
+function addStyle(css) {
+    let styleTag = document.createElement('style');
+    let dynamicStyleCss = document.createTextNode(css);
+    styleTag.appendChild(dynamicStyleCss);
+    let header = document.getElementsByTagName('head')[0];
+    header.appendChild(styleTag);
+};
+
+addStyle(selectedStyle)
+addStyle(hoverStyle)
+
+container = document.querySelector("body")
+container.onmouseover = container.onmouseout = handler
+
+function handler(event) {
+
+    let isSelected = selectedElements.some(element => {
+        return element.isSameNode(event.target)
+    })
+
+    if (event.type == 'mouseover') {
+        event.target.classList.add("hover")
+    }
+
+    if (event.type == 'mouseout') {
+        event.target.classList.remove("hover")
+    }
 }
 
 document.addEventListener("click", function (event) {
-    console.log("clicked element", event.srcElement)
-    ele = event.srcElement
-})
+    console.log("Clicked element", event.srcElement)
 
+    let isSelected = selectedElements.some(element => {
+        return element.isSameNode(event.target)
+    })
 
-//Add overlay
-document.addEventListener("dblclick", function (event) {
-    path = event.path
-        .filter(x => x instanceof HTMLElement)
-        .map(x => getEleAttributes(x))
-    l.push(path)
-    console.log("dblclicked", path)
-})
-
-
-function _zip(func, args) {
-    const iterators = args.map(arr => arr[Symbol.iterator]());
-    let iterateInstances = iterators.map((i) => i.next());
-    ret = []
-    while (iterateInstances[func](it => !it.done)) {
-        ret.push(iterateInstances.map(it => it.value));
-        iterateInstances = iterators.map((i) => i.next());
+    if (!isSelected) {
+        console.log("Adding style to element")
+        event.target.classList.add("selected")
+        selectedElements.push(event.target)
+    } else {
+        console.log("Removing style from element")
+        event.target.classList.remove("selected")
+        let idx = selectedElements.findIndex(element => {
+            return element.isSameNode(event.target)
+        })
+        selectedElements.splice(idx, 1)
     }
-    return ret;
-}
-
-const zip = (...args) => _zip('every', args);
-
-
-// zip(...l)
-
-//Zip elements together and perform a sequence alignment of the html
+})
