@@ -6,6 +6,8 @@ using REPL.TerminalMenus
 using ..Browser
 using ..Protocol: Runtime, Target
 using JSON, Gumbo
+using ..Browser: get_tab_json, add_port, Tab
+
 
 # To start REPL mode you should pass your own instance of chrome?
 chrome = nothing
@@ -24,8 +26,17 @@ function start()
     end
 
     chrome = Browser.Chrome(;headless=false)
-    tab2 = Browser.opentab!(chrome, :tab2)
-    tab2  = chrome.tabs[:tab2];
+
+    tab1 = chrome[:tab1]
+    # Target.enable() |> tab1
+
+    Target.target_created() do x
+        println("TARGET CREATED!!")
+        println(x)
+    end |> tab1
+
+    # tab2 = Browser.opentab!(chrome, :tab2)
+    # tab2  = chrome.tabs[:tab2];
 end
 
 
@@ -85,19 +96,36 @@ function capture_input()
 
 end
 
-# User should be able to select any number of html elements in the browers
-# After selection is finished should run the elements through some kind of
-# algorithm that can print selector that is in common  with them all
 
-# https://en.wikipedia.org/wiki/Longest_common_substring_problem
+function get_activate_tab(chrome)
+
+end
 
 
-# Could first try to find it the elements have common attributes between the elements
-# If not maybe there parents do?
+function update_tabs!(chrome)
+
+    tabs = collect(values(chrome.tabs))
+    tab_ids = map(t -> t.id, tabs)
+    all_tabs = get_tab_json(chrome.port)
+
+    for d in all_tabs
+        if !(d["id"] in tab_ids)
+            ws_url = add_port(d["webSocketDebuggerUrl"], chrome.port)
+            @show ws_url
+            tab = Tab(ws_url)
+            #should check name doesn't already exists...
+            tabname = Symbol("unamed$(length(tabs) + 1)")
+            chrome.tabs[tabname] = tab
+            println("Added tab $tabname")
+        end
+    end
+end
+
 
 function enter_selection_mode()
 
     global chrome
+    update_tabs!(chrome)
 
     active_tab = nothing
     js = read(joinpath(@__DIR__,"selection_mode.js"), String)
@@ -116,11 +144,20 @@ function enter_selection_mode()
 
     print("Select the elements you'd like to scrape. Press any key to finish")
     readline()
-    # Need to select the correct javascript as oposed to evaluating the whole file
 
     active_tab(Runtime.evaluate("selectedToString()")) |> JSON.parse .|> parsehtml
 end
 
+
+# Algorithm that can print selector that is in common  with them all
+# https://en.wikipedia.org/wiki/Longest_common_substring_problem
+
+# Could first try to find it the elements have common attributes between the elements
+# If not maybe there parents do?
+
+function find_common_selector(element::Array{HTMLElement})
+
+end
 
 
 # should be able to eneter a css selector in REPL mode and it should run on the current tab

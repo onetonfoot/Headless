@@ -172,10 +172,15 @@ end
 # this would be great for web scrcapping
 
 function get_ws_urls(port)
+    json = get_tab_json(port)
+    map(x -> add_port(x["webSocketDebuggerUrl"], port), json)
+end
+
+function get_tab_json(port)
     url = "http://localhost:$(port)/json/list"
     json = HTTP.get(url).body |>  String |>  JSON.parse
     filter!(x -> x["type"] == "page", json)
-    map(x -> add_port(x["webSocketDebuggerUrl"], port), json)
+    json
 end
 
 function ws_open(url, input, output; timeout=timeout)

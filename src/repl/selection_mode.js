@@ -1,4 +1,7 @@
-selectedElements = []
+if (typeof selectedElements === 'undefined') {
+    // the variable is defined
+    selectedElements = []
+}
 
 selectedStyle = `
     .selected {
