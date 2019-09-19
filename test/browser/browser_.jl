@@ -57,10 +57,14 @@ end
         Browser.close(chrome)
     end
 
-    @testset "activatetab!" begin
-        chrome = Browser.Chrome(headless=false)
-        tab2 = Browser.opentab!(chrome, :tab2)
-        Browser.activatetab!(chrome, :tab1)
-        Browser.close(chrome)
+
+    @testset  "activatetab!" begin
+        # TravisCI requires extra config for test that require GUIs 
+        @test_skip begin
+            chrome = Browser.Chrome(headless=false)
+            tab2 = Browser.opentab!(chrome, :tab2)
+            Browser.activatetab!(chrome, :tab1)
+            Browser.close(chrome) 
+        end
     end
 end
