@@ -15,5 +15,7 @@ o = [...document.querySelectorAll(".storylink")].map((x) => {
 JSON.stringify(o)
 """) |> chrome[:tab1]
 
-Base.close(chrome)
+print(json)
+
+Browser.close(chrome)
 #Usefull additions for Page
