@@ -3,6 +3,7 @@ module Browser
 using Signals
 import JSON, HTTP, Sockets, OpenTrick
 import HTTP: WebSockets
+import Base.Sys: islinux, isapple
 
 export opentab!, activatetab!, closetab!, close, start
 
@@ -56,10 +57,21 @@ Base.setindex!(browser::Chrome, key::Symbol) = setindex!(browser.tabs, key)
 
 function start(;headless=true, port=9222)
     if isportfree(port)
-        cmd = `google-chrome  --remote-debugging-port=$port --user-data-dir=/tmp/user_data`
-        if headless
-            cmd = `google-chrome --remote-debugging-port=$port --user-data-dir=/tmp/user_data/ --headless`
+
+        cmd = if islinux() 
+            `google-chrome`
+        elseif isapple()
+            `'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'`
+        else
+            error("Windows is currently not supported")
         end
+
+        cmd = `$cmd --remote-debugging-port=$port --user-data-dir=/tmp/user_data`
+
+        if headless
+            cmd = `$cmd --headless`
+        end
+
         process = pipeline(cmd, stdout=devnull, stderr=devnull) |> open
 
         while !process_running(process)
@@ -133,8 +145,11 @@ function isportfree(port::Int)
         Sockets.close(socket)
         false
     catch e
-        e != Base.IOError("connect: connection refused (ECONNREFUSED)", -111) && rethrow(e)
-        true
+        if e isa Base.IOError
+            true
+        else
+            rethrow(e)
+        end
     end
 end
 
