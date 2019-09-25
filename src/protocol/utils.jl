@@ -4,7 +4,8 @@ using MLStyle
 
 function camel_to_snake(x)
     #add any special cases here
-    x = replace(x, "JavaScript" => "javascript" )
+    x = replace(x, "JavaScript" => "Javascript" )
+    x = replace(x, "CSS" => "Css")
     replace(x, r"([a-z])([A-Z])" =>s"\1_\2") |> lowercase
 end
 
@@ -15,6 +16,7 @@ rmlines = @λ begin
       :: LineNumberNode -> nothing
     a                   -> a
 end
+
 
 function maybe_add_doc(d)
     if haskey(d,"description")
@@ -28,6 +30,25 @@ function maybe_add_doc(d)
     end
 end
 
+# Used to get the input type for the protocol
+function gettype(d, fallback="")
+    if haskey(d, "type")
+        s = @match String(d["type"]) begin
+            "integer" => "Int"
+            "boolean" => "Bool"
+            "number" => "AbstractFloat"
+            "string" => "AbstractString"
+            x => "UnknownType"
+        end
+        ":: " * s
+    else
+        fallback
+    end
+end
+
+
+# javascript_dialog_closed(fn::Function)
+
 function create_args_doc(d)
 
     if !haskey(d, "parameters")
@@ -38,19 +59,20 @@ function create_args_doc(d)
     optional = []
 
     for param in d["parameters"]
-        if haskey(param, "description")
-            #TODO this doesn't handle nested list properly see Page.printToPDF for example
-            if haskey(param, "optional")
-                push!(optional, replace("  * $(camel_to_snake(param["name"])) - $(param["description"])", "\n" => " "))
-            else
-                push!(args, replace("  * $(camel_to_snake(param["name"])) - $(param["description"])", "\n" => " "))
-            end
+        type = gettype(param)
+        name = camel_to_snake(param["name"])
+        desc = if haskey(param, "description")
+            replace(param["description"], "\n" => " ")
         else
-            if haskey(param, "optional")
-                push!(optional, "  * $(camel_to_snake(param["name"])) - has no description in devtools protocol")
-            else
-                push!(args, "  * $(camel_to_snake(param["name"])) - has no description in devtools protocol")
-            end
+            "this argument has no description in devtools protocol"
+        end
+
+        doc = "  * `$(name)` $(type) - $(desc)"
+
+        if haskey(param, "optional")
+            push!(optional, doc)
+        else
+            push!(args, doc)
         end
     end
 
@@ -59,7 +81,6 @@ function create_args_doc(d)
 
     if !isempty(args)
         arg_desc *= "Args:\n"
-
         arg_desc *= join(args,  "\n")
     end
 
@@ -82,3 +103,6 @@ function maybe_add_mod_doc(d)
 end
 
 end  # moduleUtils
+
+# Page.lifecycle_event
+# Runtime.evaluate

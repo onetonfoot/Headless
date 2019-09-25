@@ -45,8 +45,8 @@ function create_command(d, domain_name)
 
     args, kwargs = if haskey(d, "parameters")
         params = d["parameters"]
-        args = @pipe filter(!is_optional_arg, params) |> map(x -> x["name"], _)
-        kwargs = @pipe filter(is_optional_arg, params) |> map(x-> x["name"], _)
+        args = map(x -> x["name"], filter(!is_optional_arg, params))
+        kwargs = map(x-> x["name"], filter(is_optional_arg, params))
         args, kwargs
     else
         [], []

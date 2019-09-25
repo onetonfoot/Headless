@@ -20,6 +20,7 @@ function create_event(d, domain_name)
         end
     end
 
+    # TODO doesn't correcelty add doc strings for events
     b = maybe_add_doc(d)
 
     quote
