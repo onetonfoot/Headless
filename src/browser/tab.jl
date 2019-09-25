@@ -1,7 +1,7 @@
 using Signals, MLStyle
 import HTTP
 using ..Protocol: Command, Event, Runtime, Page
-using Plumber
+using Pipe
 
 #TODO tab should be its own module?
 

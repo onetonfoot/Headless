@@ -1,4 +1,4 @@
-using Base.Meta, MLStyle, Plumber
+using Base.Meta, MLStyle, Pipe
 import JSON
 using .Utils: camel_to_sym, maybe_add_doc
 

@@ -1,4 +1,4 @@
-using Test, Plumber
+using Test, Pipe
 using Headless:Browser, Protocol
 using Headless.Protocol: Page, DOM, Runtime, protocols, create_command, rmlines
 
@@ -16,7 +16,7 @@ using Headless.Protocol: Page, DOM, Runtime, protocols, create_command, rmlines
                 )
             end
         end  |> rmlines
-        result = @pipe create_command(collectClass,"DOM") |> rmlines |> _.args[1]
+        result = rmlines(create_command(collectClass,"DOM")).args[1]
         @test result == ans
     end
 
@@ -34,7 +34,7 @@ using Headless.Protocol: Page, DOM, Runtime, protocols, create_command, rmlines
                     )
             end
         end |> rmlines
-        result = @pipe create_command(copyTo,"DOM") |> rmlines |> _.args[1]
+        result = rmlines(create_command(copyTo,"DOM")).args[1]
         @test result == ans
     end
 end

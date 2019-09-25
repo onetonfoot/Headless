@@ -1,7 +1,7 @@
 module Browser
 
 using Signals
-import JSON, HTTP, Sockets, OpenTrick
+import JSON, HTTP, Sockets
 import HTTP: WebSockets
 import Base.Sys: islinux, isapple
 
@@ -23,14 +23,13 @@ end
 
 mutable struct Chrome
     process
-    # host #would be nice launch on something that's not localhost
+    # host # Would be nice launch on something that's not localhost
     port
     tabs
 end
 
-# TODO add init_fn that will optional be executed
-# each time you open a new tab
-#TODO pass optional command line flags
+# TODO add init_fn that will optional be executed each time you open a new tab
+# TODO pass optional command line flags
 
 function Chrome(;headless=true, port=9222)
 
@@ -55,10 +54,13 @@ Base.setindex!(browser::Chrome, key::Symbol) = setindex!(browser.tabs, key)
 #TODO rename to open since it's more consitent with close
 #TODO should check for the binary before and throw helpfull error if it cannot find
 
+"""
+Starts chrome
+"""
 function start(;headless=true, port=9222)
     if isportfree(port)
 
-        cmd = if islinux() 
+        cmd = if islinux()
             `google-chrome`
         elseif isapple()
             `'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'`
