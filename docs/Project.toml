@@ -1,2 +1,3 @@
 [deps]
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+Headless = "3f4dd3e2-90af-11e9-2445-29c580f6d3ea"

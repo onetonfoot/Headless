@@ -3,6 +3,8 @@ include("utils.jl")
 include("methods.jl")
 include("events.jl")
 
+using .Utils: maybe_add_mod_doc
+
 
 const modules  = map(collect(keys(protocols))) do k
     commands = protocols[k]["commands"]
@@ -28,6 +30,15 @@ const modules  = map(collect(keys(protocols))) do k
 end
 
 eval.(modules)
+
+# Add documentaion for each module
+
+for d in values(protocols)
+    expr = maybe_add_mod_doc(d)
+    eval(expr)
+end
+
+
 Page.include("page.jl")
 
 end  # module    Protocol

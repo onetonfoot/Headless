@@ -17,5 +17,5 @@ JSON.stringify(o)
 
 print(json)
 
-Browser.close(chrome)
+close(chrome)
 #Usefull additions for Page

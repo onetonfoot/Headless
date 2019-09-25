@@ -23,7 +23,7 @@ global_logger(logger)
             Page.navigate("https://www.facebook.com") |> tab1
             sleep(4)
             @test !isempty(l)
-            Browser.close(chrome)
+            close(chrome)
         end
     end
 end

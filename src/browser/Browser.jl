@@ -5,7 +5,7 @@ import JSON, HTTP, Sockets
 import HTTP: WebSockets
 import Base.Sys: islinux, isapple
 
-export opentab!, activatetab!, closetab!, close, start
+export opentab!, activatetab!, closetab!, Chrome
 
 include("tab.jl")
 
@@ -31,6 +31,8 @@ end
 # TODO add init_fn that will optional be executed each time you open a new tab
 # TODO pass optional command line flags
 
+
+"""Starts an instance chrome browsers"""
 function Chrome(;headless=true, port=9222)
 
     if !isportfree(port)
@@ -50,13 +52,19 @@ end
 
 Base.getindex(browser::Chrome, key::Symbol) = getindex(browser.tabs, key)
 Base.setindex!(browser::Chrome, key::Symbol) = setindex!(browser.tabs, key)
+tabnames(chrome::Chrome) = collect(keys(chrome.tabs))
 
-#TODO rename to open since it's more consitent with close
+
+function Base.show(io::IO, chrome::Chrome)
+    #TODO make this prettier :/
+    print(io, """Chrome:
+                - running - $(process_running(chrome.process))
+                - port - $(chrome.port)
+                - num tabs - $(length(chrome.tabs))""")
+end
+
 #TODO should check for the binary before and throw helpfull error if it cannot find
 
-"""
-Starts chrome
-"""
 function start(;headless=true, port=9222)
     if isportfree(port)
 
@@ -85,7 +93,7 @@ function start(;headless=true, port=9222)
     end
 end
 
-function close(browser::Chrome)
+function Base.close(browser::Chrome)
     map(close, collect(values(browser.tabs)))
     kill(browser.process)
     err = ErrorException("timedout closing browser")
@@ -94,7 +102,7 @@ function close(browser::Chrome)
     end
 end
 
-function opentab!(browser::Chrome, tabname::Symbol ,url)
+function opentab!(browser::Chrome, tabname::Symbol, url)
 
     if haskey(browser.tabs, tabname)
         throw(TabAlreadyExists(tabname))
@@ -110,7 +118,7 @@ end
 
 opentab!(browser::Chrome, tabname::Symbol) = opentab!(browser,tabname, "")
 
-function closetab!(browser, tabname::Symbol; timeout=3)
+function closetab!(browser::Chrome, tabname::Symbol; timeout=3)
 
     try
         tab = browser.tabs[tabname]
@@ -129,6 +137,7 @@ function closetab!(browser, tabname::Symbol; timeout=3)
     browser
 end
 
+"""Used to bring the given tab name into focus"""
 function activatetab!(browser, tabname::Symbol; timeout=3)
     try
         tab = browser.tabs[tabname]

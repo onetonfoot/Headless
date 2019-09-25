@@ -22,4 +22,4 @@ Page.add_script_to_evaluate_on_new_document(init_script) |>
 Page.navigate("https://recaptcha-demo.appspot.com/recaptcha-v3-request-scores.php") |>
 chrome[:tab2]
 
-Browser.close(chrome)
+close(chrome)

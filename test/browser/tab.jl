@@ -15,7 +15,7 @@ using Headless.Browser: JsError, TimedoutError
         #TODO check that the tab is running in chrome
         #and not just that julia has started the task
         @test istaskstarted(t)
-        Browser.close(chrome)
+        close(chrome)
     end
 end
 
@@ -25,7 +25,7 @@ end
         tab = chrome.tabs[:tab1]
         @test tab(Runtime.evaluate("10")) == 10
         @test tab(Runtime.evaluate("'hello'")) == "hello"
-        Browser.close(chrome)
+        close(chrome)
     end
 
 
@@ -36,14 +36,14 @@ end
         Runtime.evaluate("x * 2") |>
         tab
         @test result == 20
-        Browser.close(chrome)
+        close(chrome)
     end
 
     @testset "javascript errors" begin
         chrome = Browser.Chrome()
         tab = chrome.tabs[:tab1]
         @test_throws JsError tab(Runtime.evaluate("x"))
-        Browser.close(chrome)
+        close(chrome)
     end
 
     @testset "timeouts" begin
@@ -63,7 +63,7 @@ end
         """
 
         @test_throws TimedoutError tab(Runtime.evaluate(js), timeout=1.0)
-        Browser.close(chrome)
+        close(chrome)
     end
 end
 

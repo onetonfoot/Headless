@@ -30,4 +30,4 @@ doc_loaded |> chrome[:tab1]
 # delete!(chrome[:tab1], doc_loaded)
 
 Page.navigate("https://news.ycombinator.com/") |> chrome[:tab1]
-Browser.close(chrome)
+close(chrome)

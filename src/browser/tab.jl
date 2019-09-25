@@ -3,8 +3,6 @@ import HTTP
 using ..Protocol: Command, Event, Runtime, Page
 using Pipe
 
-#TODO tab should be its own module?
-
 const init_script = read(joinpath(@__DIR__, "init.js"),String)
 const timeout = 3
 
@@ -127,6 +125,10 @@ function (tab::Tab)(cmd::Command; timeout=timeout)
     end
 end
 
+# TODO more informative show method may require storing tabname in tab struct?
+function Base.show(io::IO, tab::Tab)
+    print(io::IO, "tab")
+end
 
 function (tab::Tab)(event::Event)
     #TODO decide on behaviour in this case

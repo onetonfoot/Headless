@@ -48,6 +48,6 @@ end
         url = "https://www.facebook.com/"
         tab1(Page.navigate(url))
         @test Runtime.evaluate("window.location.href") |> tab1 == url
-        Browser.close(chrome)
+        close(chrome)
     end
 end
