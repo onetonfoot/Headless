@@ -4,16 +4,11 @@ authors = ["onetonfoot <onetonfoot@gmail.com>"]
 version = "0.1.0"
 
 [deps]
-Cascadia = "54eefc05-d75b-58de-a785-1a3403f0919f"
-Gumbo = "708ec375-b3d6-5a57-a7ce-8257bf98657a"
 HTTP = "cd3eb016-35fb-5094-929b-558a96fad6f3"
 JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 Logging = "56ddb016-857b-54e1-b83d-db4d58db5568"
 MLStyle = "d8e11817-5142-5d16-987a-aa16d5891078"
-OpenTrick = "102dff8d-99cb-5cc2-9bf9-d9fe3a2e5e7a"
 Plumber = "49a8456a-4ba5-11e9-3740-3f4f22e0c893"
-REPL = "3fa0cd96-eef1-5676-8a61-b3b8758bbffb"
-ReplMaker = "b873ce64-0db9-51f5-a568-4457d8e49576"
 Signals = "6303bc30-01ab-52eb-8b10-60e47555a8d1"
 Sockets = "6462fe0b-24de-5631-8697-dd941f90decc"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"

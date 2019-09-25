@@ -9,7 +9,7 @@ function kill_port()
     end
 
     try
-    cmd = pipeline(cmd, `grep :9222`)
+        cmd = pipeline(cmd, `grep :9222`)
         result = read(cmd, String) |>  rstrip |> x -> split(x, "\n")
 
         for line in result
@@ -19,7 +19,6 @@ function kill_port()
         end
     catch
         print("Nothing to kill")
-
     end
 end
 
