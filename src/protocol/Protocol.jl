@@ -31,6 +31,8 @@ end
 
 eval.(modules)
 
+# Add documentation for modules
+
 for (domain_name, protocol) in collect(protocols)
 
     add_mod_doc(protocol) |> eval

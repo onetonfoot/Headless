@@ -2,7 +2,7 @@ using Documenter
 
 push!(LOAD_PATH,"../src/")
 using Headless
-
+using Headless.Protocol
 
 function module_datatypes(mod::Module, t::DataType)
     symbols = names(mod; all = true, imported = false)
@@ -10,32 +10,40 @@ function module_datatypes(mod::Module, t::DataType)
         Core.eval(mod, sym) isa t && !occursin("#", string(sym))
     end
 end
-
+#
 modules = module_datatypes(Protocol, Module)
 
-reference = "# Reference \n\n"
+reference = """
+
+# Reference
+
+```@meta
+CurrentModule = Headless.Protocol
+DocTestSetup = quote
+    using Headless.Protocol
+end
+```
+
+"""
 
 for mod in modules
-    global reference
-    reference *= "## $mod \n\n"
+    global reference *= """
 
-    mod = Core.eval(Protocol, mod)
+    ## $mod
 
-    # modules = map(modules) do sym
-    #     Core.eval(Protocol, sym)
-    # end
+    ```@autodocs
+    Modules = [ $mod ]
+    ```
+
+    """
 end
-
-
-names(p; all = true, imported = false)
-
 
 open(joinpath(@__DIR__ ,"src" ,"reference.md"),"w") do f
     write(f, reference)
 end
 
-
 makedocs(
     sitename="Headless",
-    pages = ["home.md","browser.md","protocol.md","reference.md"]
+    pages = ["home.md", "reference.md" ], #,"browser.md","protocol.md","reference.md"],
+    modules = [Headless]
     )

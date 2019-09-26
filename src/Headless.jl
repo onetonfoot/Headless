@@ -9,7 +9,7 @@ include("protocol/Protocol.jl")
 include("browser/Browser.jl")
 
 using .Browser
-export Chrome, close, opentab!, closetab!, activatetab!
+export Chrome, close, opentab!, closetab!, activatetab!, tabnames
 
 using .Protocol
 

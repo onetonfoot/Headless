@@ -5,7 +5,7 @@ import JSON, HTTP, Sockets
 import HTTP: WebSockets
 import Base.Sys: islinux, isapple
 
-export opentab!, activatetab!, closetab!, Chrome
+export opentab!, activatetab!, closetab!, tabnames, Chrome
 
 include("tab.jl")
 
