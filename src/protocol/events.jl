@@ -1,6 +1,6 @@
 using Signals, JSON
 using .Protocol: protocols
-using .Utils: camel_to_sym, maybe_add_doc,rmlines
+using .Utils: camel_to_sym, rmlines
 
 const events = filter(x->haskey(x[2], "events"), protocols)
 
@@ -10,21 +10,14 @@ struct Event
     # signals # signals should be applyed after the when condition is met
 end
 
+
 function create_event(d, domain_name)
     ename = "$(domain_name).$(d["name"])"
     fname = d["name"] |> camel_to_sym
 
-    a = quote
+    quote
         function $fname(fn::Function)
             Event(fn, $ename)
         end
-    end
-
-    # TODO doesn't correcelty add doc strings for events
-    b = maybe_add_doc(d)
-
-    quote
-        $a
-        $b
     end |> rmlines
 end

@@ -1,6 +1,6 @@
 using Base.Meta, MLStyle, Pipe
 import JSON
-using .Utils: camel_to_sym, maybe_add_doc
+using .Utils: camel_to_sym
 
 const protocols = @pipe read(joinpath(@__DIR__,"./protocol.json") ,String) |>
     JSON.parse |> filter(x -> !haskey(x,"experimental"), _["domains"] ) |>
@@ -56,20 +56,9 @@ function create_command(d, domain_name)
     pairs = [Expr(:call, :(=>), k, camel_to_sym(k)) for k in [args; kwargs]]
     dict = Expr(:call, :Dict, pairs...)
 
-    a =  quote
-        function $fname( $(camel_to_sym.(args)...) ;  $(kwpairs...))
-            Command(
-                Int(rand(UInt16)),
-                $method,
-                $dict
-            )
-        end
-    end
-
-    b = maybe_add_doc(d)
-
     quote
-        $a
-        $b
+        function $fname( $(camel_to_sym.(args)...) ;  $(kwpairs...))
+            Command(Int(rand(UInt16)), $method, $dict)
+        end
     end
 end

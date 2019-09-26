@@ -3,7 +3,7 @@ module Utils
 using MLStyle
 
 function camel_to_snake(x)
-    #add any special cases here
+    # add any special cases here
     x = replace(x, "JavaScript" => "Javascript" )
     x = replace(x, "CSS" => "Css")
     replace(x, r"([a-z])([A-Z])" =>s"\1_\2") |> lowercase
@@ -17,20 +17,46 @@ rmlines = @λ begin
     a                   -> a
 end
 
+function add_cmd_doc(d, domain_name)
 
-function maybe_add_doc(d)
     if haskey(d,"description")
         desc = d["description"]
         arg_desc = create_args_doc(d)
-        desc = join([desc, arg_desc], "\n\n")
+        doc = join([desc, arg_desc], "\n\n")
         name = camel_to_sym(d["name"])
+        mod = Symbol(domain_name)
+        :(@doc $doc $mod.$name)
+    else
+        :(nothing)
+    end
+end
+
+function add_event_doc(d, domain_name)
+
+    if haskey(d,"description")
+        desc = d["description"]
+        desc *= "\nReturns dictionary with the following fields. "
+        arg_desc = create_args_doc(d)
+        doc = join([desc, arg_desc], "\n\n")
+        doc = replace(doc, "Args:" => "Feilds:")
+        name = camel_to_sym(d["name"])
+        mod = Symbol(domain_name)
+        :(@doc $doc $mod.$name)
+    else
+        :(nothing)
+    end
+end
+
+function add_mod_doc(d)
+    if haskey(d,"description")
+        desc = d["description"]
+        name = Symbol(d["domain"])
         :(@doc $desc $name)
     else
         :(nothing)
     end
 end
 
-# Used to get the input type for the protocol
 function gettype(d, fallback="")
     if haskey(d, "type")
         s = @match String(d["type"]) begin
@@ -41,13 +67,13 @@ function gettype(d, fallback="")
             x => "UnknownType"
         end
         ":: " * s
+    elseif haskey(d, "\$ref")
+        t = d["\$ref"]
+        ":: $t"
     else
         fallback
     end
 end
-
-
-# javascript_dialog_closed(fn::Function)
 
 function create_args_doc(d)
 
@@ -69,11 +95,7 @@ function create_args_doc(d)
 
         doc = "  * `$(name)` $(type) - $(desc)"
 
-        if haskey(param, "optional")
-            push!(optional, doc)
-        else
-            push!(args, doc)
-        end
+        haskey(param, "optional") ? push!(optional, doc) : push!(args, doc)
     end
 
     arg_desc = ""
@@ -92,17 +114,5 @@ function create_args_doc(d)
     join([arg_desc, optional_desc], "\n\n") |> strip
 end
 
-function maybe_add_mod_doc(d)
-    if haskey(d,"description")
-        desc = d["description"]
-        name = Symbol(d["domain"])
-        :(@doc $desc $name)
-    else
-        :(nothing)
-    end
-end
 
-end  # moduleUtils
-
-# Page.lifecycle_event
-# Runtime.evaluate
+end  # module Utils
