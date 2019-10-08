@@ -5,7 +5,7 @@ using Headless.Browser: JsError, TimedoutError
 
 # TODO first time browser opens without a user data folder it will ask for permisions
 # to be the default browser and doesn't create a single tab. This results
-# in the test falling the first time they are run. Seems to only be a problem on linux
+# in the test falling the first time they are run. 
 
 @testset "tab" begin
     @testset "single tab" begin

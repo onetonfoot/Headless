@@ -21,6 +21,12 @@ using Headless.Protocol: Runtime
          @test_throws PortAlreadyInUse(9222) Browser.Chrome()
          close(chrome)
      end
+
+    @testset "flags" begin
+        chrome = Browser.Chrome(flags = "--disable-web-security")
+        @test_throws PortAlreadyInUse(9222) Browser.Chrome()
+        close(chrome)
+     end
 end
 
 @testset "get_ws_urls" begin

@@ -23,23 +23,23 @@ end
 
 mutable struct Chrome
     process
-    # host # Would be nice launch on something that's not localhost
+    # host # TODO Would be nice launch on something that's not localhost 
     port
     tabs
 end
 
 # TODO add init_fn that will optional be executed each time you open a new tab
-# TODO pass optional command line flags
-
+# https://peter.sh/experiments/chromium-command-line-switches/ 
+# https://www.chromium.org/developers/how-tos/run-chromium-with-flags
 
 """Starts an instance chrome browsers"""
-function Chrome(;headless=true, port=9222)
+function Chrome(;headless=true, user_data_dir=tempdir(), port=9222, flags="")
 
     if !isportfree(port)
         PortAlreadyInUse(port)
     end
 
-    process = start(;headless=headless, port=port)
+    process = start(;headless=headless, user_data_dir=user_data_dir, port=port, flags=flags)
     ws_urls = get_ws_urls(port)
     tabs = Dict(Symbol("tab$i")=> Tab(ws_url) for (i, ws_url) in enumerate(ws_urls))
     Chrome(
@@ -63,9 +63,8 @@ function Base.show(io::IO, chrome::Chrome)
                 - num tabs - $(length(chrome.tabs))""")
 end
 
-#TODO should check for the binary before and throw helpfull error if it cannot find
 
-function start(;headless=true, port=9222)
+function start(;headless=true, user_data_dir=tempdir(), port=9222, flags="")
     if isportfree(port)
 
         cmd = if islinux()
@@ -76,7 +75,11 @@ function start(;headless=true, port=9222)
             error("Windows is currently not supported")
         end
 
-        cmd = `$cmd --remote-debugging-port=$port --user-data-dir=/tmp/user_data`
+        if !isfile(cmd.exec[1])
+            error("You don't have the chrome binary in the default location - $(cmd.exec[1])")
+        end
+
+        cmd = `$cmd --remote-debugging-port=$port --user-data-dir=/tmp/user_data $flags`
 
         if headless
             cmd = `$cmd --headless`
