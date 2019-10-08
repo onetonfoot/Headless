@@ -98,19 +98,23 @@ function (tab::Tab)(cmd::Command; timeout=timeout)
         cmd = cmd.prev
     end
 
-    # Currently timeout applies to each indivdual command, is this
-    # the ideal semantics? Really it should apply to the whole chain instead
+    remaining_time = timeout
+    cmd_times = []
+
     while true
         tab.command_ids[cmd.id] = nothing
         tab.input(cmd)
         result = nothing
-        t = timedwait(float(timeout)) do
+        (t, time_taken , _) = @timed timedwait(float(remaining_time)) do
             result = tab.command_ids[cmd.id]
             !isnothing(result)
         end
 
+        remaining_time -= time_taken
+        push!(cmd_times, time_taken)
+
         if t == :timed_out
-            throw(TimedoutError(timeout))
+            throw(TimedoutError(cmd_times))
         elseif result isa Exception
             throw(result)
         end
