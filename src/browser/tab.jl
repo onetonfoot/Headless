@@ -15,8 +15,8 @@ end
 
 mutable struct Tab
     process
-    input
-    output
+    input::Signal
+    output::Signal
     id
     command_ids
     event_listeners
@@ -26,7 +26,7 @@ function Tab(ws_url::T; init_script=init_script) where T <: AbstractString
 
     init_cmd = Page.add_script_to_evaluate_on_new_document(init_script)
     input = Signal(init_cmd; strict_push = true)
-    output = Signal(nothing; strict_push = true)
+    output = Signal(:start_signal; strict_push = true)
 
     process = ws_open(ws_url, input, output)
     id = split(ws_url,"/")[end]
@@ -35,6 +35,7 @@ function Tab(ws_url::T; init_script=init_script) where T <: AbstractString
     tab = Tab(process, input, output, id, command_ids, event_listeners)
 
     output_listener = Signal(output) do x
+        @debug "Response received: $x"
         @match x begin
             Dict("id" => id, "error" => e) => begin
                 tab.command_ids[id] = if haskey(e, "message")
@@ -46,7 +47,7 @@ function Tab(ws_url::T; init_script=init_script) where T <: AbstractString
             Dict("id" => id, "result" => result) => begin
                 tab.command_ids[id] = handle_result(result)
             end
-            nothing => nothing #this for first signal
+            :start_signal => nothing 
             x => ErrorException("Tab received unknown response $x")
         end
     end
@@ -82,7 +83,7 @@ function handle_result(x)
             Dict("type" => t, "objectId" => j) && if t == "object" end => JSON.parse(j)
             _ => x
         end
-        # like with Network.enable
+        # For example like with Network.enable
         x && if x == Dict() end => true
         _ => x
     end
@@ -103,7 +104,7 @@ function (tab::Tab)(cmd::Command; timeout=timeout)
 
     while true
         tab.command_ids[cmd.id] = nothing
-        tab.input(cmd)
+        tab.input(cmd) 
         result = nothing
         (t, time_taken , _) = @timed timedwait(float(remaining_time)) do
             result = tab.command_ids[cmd.id]
@@ -135,7 +136,7 @@ function Base.show(io::IO, tab::Tab)
 end
 
 function (tab::Tab)(event::Event)
-    #TODO decide on behaviour in this case
+    # TODO decide on behaviour in this case
     haskey(tab.event_listeners, event.name) && @warn "Event listener $(event.name) already exists"
 
     condition = Signal(tab.output) do x
@@ -143,13 +144,17 @@ function (tab::Tab)(event::Event)
     end
 
     signal = when(condition, tab.output) do x
+        x
+    end
+
+    a_signal = async_signal(signal) do x
         event.fn(x)
     end
 
     # TODO It would be nice if events could be debounced and throttled
 
-    tab.event_listeners[event.name] = (condition, signal)
-    event.name
+    tab.event_listeners[event.name] = (condition, a_signal)
+    a_signal
 end
 
 function Base.delete!(tab::Tab, event::Event)
@@ -173,8 +178,8 @@ function add_port(url, port)
     replace(url, "/devtools" => ":$port/devtools")
 end
 
-# Technically this could get the ws_url for a browser not on local host
-# allowing you to control headless browsers running on multiple  machines
+# TODO - the ws_url for a browser could be not localhost
+# allowing you to control headless browsers running on multiple machines
 # this would be great for web scrcapping
 
 function get_ws_urls(port)
@@ -194,6 +199,7 @@ function ws_open(url, input, output; timeout=timeout)
     task = @async WebSockets.open(url) do ws
         sender = Signal(input) do cmd
             write(ws, JSON.json(cmd))
+            @debug "Command sent: $(JSON.json(cmd))\n"
         end
         while !eof(ws)
             data = readavailable(ws)
@@ -207,3 +213,4 @@ function ws_open(url, input, output; timeout=timeout)
     end
     task
 end
+

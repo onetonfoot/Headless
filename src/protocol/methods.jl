@@ -3,10 +3,12 @@ import JSON
 using .Utils: camel_to_sym
 
 const protocols = @pipe read(joinpath(@__DIR__,"./protocol.json") ,String) |>
-    JSON.parse |> filter(x -> !haskey(x,"experimental"), _["domains"] ) |>
+    JSON.parse |>  
+    getindex(_,  "domains") |>
     Dict(p["domain"] =>p for p in _)
 
 # TODO Since a commands is a doubley linked list should implement iteration traits
+
 mutable struct Command
     id
     method
