@@ -1,13 +1,14 @@
 using Documenter
 
-include("src/protocol.jl")
+include(joinpath(@__DIR__, "src/protocol.jl"))
 
 makedocs(
     sitename="Headless",
     pages = ["home.md", "protocol.md" ],
 )
 
-rm("src/protocol.md")
+
+rm(joinpath(@__DIR__, "src/protocol.md"))
 
 
 deploydocs(
