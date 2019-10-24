@@ -34,8 +34,6 @@ end
 
 eval.(modules)
 
-# Add documentation for modules
-
 for (domain_name, protocol) in collect(protocols)
 
     add_mod_doc(protocol) |> eval
@@ -48,8 +46,6 @@ for (domain_name, protocol) in collect(protocols)
         add_cmd_doc(command, domain_name) |> eval
     end
 end
-
-# Utiliy functions for specific modules
 
 for mod in module_names
     eval(:(export $mod))

@@ -35,7 +35,6 @@ function Tab(ws_url::T; init_script=init_script) where T <: AbstractString
     tab = Tab(process, input, output, id, command_ids, event_listeners)
 
     output_listener = Signal(output) do x
-        @debug "Response received: $x"
         @match x begin
             Dict("id" => id, "error" => e) => begin
                 tab.command_ids[id] = if haskey(e, "message")
@@ -132,7 +131,8 @@ end
 
 # TODO more informative show method may require storing tabname in tab struct?
 function Base.show(io::IO, tab::Tab)
-    print(io::IO, "tab")
+    color = istaskdone(tab.process) ? :red : :green
+    printstyled(io, "tab", color=color)
 end
 
 function (tab::Tab)(event::Event)
@@ -199,7 +199,6 @@ function ws_open(url, input, output; timeout=timeout)
     task = @async WebSockets.open(url) do ws
         sender = Signal(input) do cmd
             write(ws, JSON.json(cmd))
-            @debug "Command sent: $(JSON.json(cmd))\n"
         end
         while !eof(ws)
             data = readavailable(ws)

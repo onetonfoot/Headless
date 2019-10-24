@@ -74,8 +74,9 @@ function start(;headless=true, user_data_dir=tempdir(), port=9222, flags="")
         else
             error("Windows is currently not supported")
         end
-
-        if !isfile(cmd.exec[1])
+        
+        # TODO there should be a cleaner way to find if the binary exist across differnet OSes
+        if isapple() && !isfile(cmd.exec[1])
             error("You don't have the chrome binary in the default location - $(cmd.exec[1])")
         end
 

@@ -8,3 +8,8 @@ makedocs(
 )
 
 rm("src/protocol.md")
+
+
+deploydocs(
+    repo = "github.com/onetonfoot/Headless.git",
+)

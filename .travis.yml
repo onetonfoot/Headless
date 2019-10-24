@@ -7,7 +7,6 @@ coveralls: false
 
 os:
   - linux
-  # - osx
 
 before_install:
   - wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
@@ -15,3 +14,14 @@ before_install:
 
 after_success:
 - julia -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Codecov.submit(process_folder())'
+
+jobs:
+  include:
+    - stage: "Documentation"
+      julia: 1.0
+      os: linux
+      script:
+        - julia --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd()));
+                                               Pkg.instantiate()'
+        - julia --project=docs/ docs/make.jl
+      after_success: skip
