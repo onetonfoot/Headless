@@ -19,5 +19,7 @@ function create_event(d, domain_name)
         function $fname(fn::Function)
             Event(fn, $ename)
         end
+
+        export $fname
     end |> rmlines
 end

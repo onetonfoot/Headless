@@ -5,6 +5,7 @@ include("events.jl")
 
 using .Utils: add_cmd_doc, add_event_doc, add_mod_doc
 
+module_names = []
 
 const modules  = map(collect(keys(protocols))) do k
     commands = protocols[k]["commands"]
@@ -12,6 +13,8 @@ const modules  = map(collect(keys(protocols))) do k
     events = get(protocol, "events", [])
 
     module_name = Symbol(k)
+    global module_names
+    push!(module_names, module_name)
 
     expr = quote
         module $module_name
@@ -47,6 +50,10 @@ for (domain_name, protocol) in collect(protocols)
 end
 
 # Utiliy functions for specific modules
+
+for mod in module_names
+    eval(:(export $mod))
+end
 
 Page.include("page.jl")
 

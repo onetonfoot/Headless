@@ -62,5 +62,7 @@ function create_command(d, domain_name)
         function $fname( $(camel_to_sym.(args)...) ;  $(kwpairs...))
             Command(Int(rand(UInt16)), $method, $dict)
         end
+
+        export $fname
     end
 end

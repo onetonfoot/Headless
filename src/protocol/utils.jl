@@ -64,7 +64,7 @@ function gettype(d, fallback="")
             "boolean" => "Bool"
             "number" => "AbstractFloat"
             "string" => "AbstractString"
-            x => "UnknownType"
+            x => x 
         end
         ":: " * s
     elseif haskey(d, "\$ref")
@@ -75,6 +75,7 @@ function gettype(d, fallback="")
     end
 end
 
+# TODO - add documentation for the command return types! 
 function create_args_doc(d)
 
     if !haskey(d, "parameters")
