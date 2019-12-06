@@ -8,6 +8,18 @@ function module_datatypes(mod::Module, t::DataType)
         Core.eval(mod, sym) isa t && !occursin("#", string(sym))
     end
 end
+
+function get_types(s)
+    fn_types = Core.eval(Protocol, quote 
+        l = []
+        for fn in $module_datatypes($s, Function)
+            fn = Core.eval(Protocol, Base.return_types(getproperty($s, fn)))[1]
+            push!(l, fn)
+        end
+        l
+    end )
+    fn_types
+end
     
 reference = """
 # Protocol
@@ -28,12 +40,37 @@ for mod in modules
     $mod
     """
 
+    events = """
+    ### Events
+    ```@docs
+    """
+
+    cmds = """
+    ### Commands
+    ```@docs
+    """
+
     fn_names= module_datatypes(Core.eval(Protocol, mod), Function)
-    for fn in fn_names
-        reference *=  "$(mod).$(fn)\n"
+    fn_types = get_types(mod)
+    for (fn, t) in zip(fn_names, fn_types)
+        println(t)
+        if t isa Headless.Protocol.Command
+            cmds *=  "$(mod).$(fn)\n"
+        else
+            events *=  "$(mod).$(fn)\n"
+        end
     end
 
     reference *= "```\n\n"
+    events *= "```\n\n"
+    cmds *= "```\n\n"
+
+    reference = """
+    $reference
+    $events
+    $cmds
+    """
+
 
 end
 

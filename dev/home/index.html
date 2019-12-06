@@ -9,7 +9,7 @@ Chrome:
  :tab1</code></pre><p>Tabs can be used execute commands such as navigating to a new page.</p><pre><code class="language-julia-repl">julia&gt; using Headless.Protocol: Page
 
 julia&gt; cmd = Page.navigate(&quot;https://www.google.com&quot;)
-Headless.Protocol.Command(41442, &quot;Page.navigate&quot;, Dict{String,Union{Nothing, String}}(&quot;referrer&quot;=&gt;nothing,&quot;frameId&quot;=&gt;nothing,&quot;transitionType&quot;=&gt;nothing,&quot;url&quot;=&gt;&quot;https://www.google.com&quot;), nothing, nothing)
+Headless.Protocol.Command(36117, &quot;Page.navigate&quot;, Dict{String,Any}(&quot;referrer&quot;=&gt;nothing,&quot;frameId&quot;=&gt;nothing,&quot;transitionType&quot;=&gt;nothing,&quot;url&quot;=&gt;&quot;https://www.google.com&quot;), nothing, nothing)
 
 julia&gt; chrome[:tab1](cmd)
 ERROR: UndefVarError: isnothing not defined</code></pre><p>Finally to close the browser</p><pre><code class="language-julia-repl">julia&gt; close(chrome)
