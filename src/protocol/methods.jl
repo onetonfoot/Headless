@@ -3,7 +3,7 @@ import JSON
 using .Utils: camel_to_sym
 
 const protocols = @pipe read(joinpath(@__DIR__,"./protocol.json") ,String) |>
-    JSON.parse |>  
+    JSON.parse |>
     getindex(_,  "domains") |>
     Dict(p["domain"] =>p for p in _)
 
@@ -56,7 +56,9 @@ function create_command(d, domain_name)
 
     kwpairs = [Expr(:kw, camel_to_sym(k), :nothing) for k in kwargs ]
     pairs = [Expr(:call, :(=>), k, camel_to_sym(k)) for k in [args; kwargs]]
-    dict = Expr(:call, :Dict, pairs...)
+    #TODO temporarly put type in dictnary until can figure out how to
+    #pass optional arguments to Fetch.enable()
+    dict = Expr(:call, Expr(:curly, :Dict, :String, :Any), pairs...)
 
     quote
         function $fname( $(camel_to_sym.(args)...) ;  $(kwpairs...))

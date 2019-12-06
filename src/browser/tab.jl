@@ -38,7 +38,11 @@ function Tab(ws_url::T; init_script=init_script) where T <: AbstractString
         @match x begin
             Dict("id" => id, "error" => e) => begin
                 tab.command_ids[id] = if haskey(e, "message")
-                    BrowserError(e["message"])
+                    @debug e
+                    msg = e["message"]
+                    msg = haskey(e, "data") ? "$(msg): $(e["data"])" : msg
+                    # msg = haskey(e, "code") ? "$(msg): $(e["data"])" : msg
+                    BrowserError(msg)
                 else
                     BrowserError("Unknown Error")
                 end
@@ -46,7 +50,7 @@ function Tab(ws_url::T; init_script=init_script) where T <: AbstractString
             Dict("id" => id, "result" => result) => begin
                 tab.command_ids[id] = handle_result(result)
             end
-            :start_signal => nothing 
+            :start_signal => nothing
             x => ErrorException("Tab received unknown response $x")
         end
     end
@@ -103,7 +107,7 @@ function (tab::Tab)(cmd::Command; timeout=timeout)
 
     while true
         tab.command_ids[cmd.id] = nothing
-        tab.input(cmd) 
+        tab.input(cmd)
         result = nothing
         (t, time_taken , _) = @timed timedwait(float(remaining_time)) do
             result = tab.command_ids[cmd.id]
@@ -212,4 +216,3 @@ function ws_open(url, input, output; timeout=timeout)
     end
     task
 end
-
