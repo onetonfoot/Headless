@@ -76,7 +76,14 @@ function start(;headless=true, port=9222)
             error("Windows is currently not supported")
         end
 
-        cmd = `$cmd --remote-debugging-port=$port --user-data-dir=/tmp/user_data`
+        # TODO there should be a cleaner way to find if the binary exist across differnet OSes
+        if isapple() && !isfile(cmd.exec[1])
+            error("You don't have the chrome binary in the default location - $(cmd.exec[1])")
+        end
+
+        # More default flags can be found here
+        # https://github.com/puppeteer/puppeteer/blob/master/lib/Launcher.js
+        cmd = `$cmd --no-first-run --remote-debugging-port=$port --user-data-dir=/tmp/user_data $flags`
 
         if headless
             cmd = `$cmd --headless`
