@@ -82,7 +82,11 @@ function start(;headless=true, user_data_dir=tempdir(), port=9222, flags="")
 
         # More default flags can be found here
         # https://github.com/puppeteer/puppeteer/blob/master/lib/Launcher.js
-        mkdir(user_data_dir)
+
+        if !isdir(user_data_dir)
+            mkdir(user_data_dir)
+        end
+
         cmd = `$cmd --no-first-run --remote-debugging-port=$port --user-data-dir=$user_data_dir $flags`
 
         if headless
