@@ -23,13 +23,14 @@ end
 
 mutable struct Chrome
     process
-    # host # TODO Would be nice launch on something that's not localhost 
+    # host # TODO Would be nice launch on something that's not localhost
     port
     tabs
+    user_data_dir
 end
 
 # TODO add init_fn that will optional be executed each time you open a new tab
-# https://peter.sh/experiments/chromium-command-line-switches/ 
+# https://peter.sh/experiments/chromium-command-line-switches/
 # https://www.chromium.org/developers/how-tos/run-chromium-with-flags
 
 """Starts an instance chrome browsers"""
@@ -46,6 +47,7 @@ function Chrome(;headless=true, user_data_dir=tempdir(), port=9222, flags="")
         process,
         port,
         tabs,
+        user_data_dir,
     )
 
 end
@@ -74,13 +76,15 @@ function start(;headless=true, user_data_dir=tempdir(), port=9222, flags="")
         else
             error("Windows is currently not supported")
         end
-        
+
         # TODO there should be a cleaner way to find if the binary exist across differnet OSes
         if isapple() && !isfile(cmd.exec[1])
             error("You don't have the chrome binary in the default location - $(cmd.exec[1])")
         end
 
-        cmd = `$cmd --remote-debugging-port=$port --user-data-dir=/tmp/user_data $flags`
+        # Puppeteers defaults arguments can be found here
+        # https://github.com/puppeteer/puppeteer/blob/v2.0.0/lib/Launcher.js
+        cmd = `$cmd --remote-debugging-port=$port --no-first-run --user-data-dir=$user_data_dir $flags`
 
         if headless
             cmd = `$cmd --headless`
