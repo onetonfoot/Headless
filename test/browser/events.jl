@@ -32,8 +32,6 @@ end
     @testset "DOM.documenetUpdated" begin
         chrome = Browser.Chrome(headless=false)
         tab1 = chrome[:tab1]
-        #TODO this should be done automatically if events are added
-        DOM.enable() |> tab1
 
         google = []
         DOM.document_updated() do x
@@ -65,7 +63,7 @@ end
         delete!(tab1, DOM.document_updated)
         Page.navigate("https://www.reddit.com") |> tab1
         sleep(3)
-        @test_broken isempty(should_be_empty)
+        @test isempty(should_be_empty)
 
         close(chrome)
     end

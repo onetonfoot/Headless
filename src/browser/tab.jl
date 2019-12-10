@@ -1,6 +1,7 @@
 using Signals, MLStyle
 import HTTP
 using ..Protocol: Command, Event, Runtime, Page
+import ..Protocol
 using Pipe
 
 const init_script = read(joinpath(@__DIR__, "init.js"),String)
@@ -139,7 +140,30 @@ function Base.show(io::IO, tab::Tab)
     printstyled(io, "tab", color=color)
 end
 
+
+
+function get_event_domains(tab::Tab)
+    domains = map(collect(keys(tab.event_listeners))) do x
+        split(x, ".") |> first
+    end |> unique
+
+    filter!(x -> x != "output_listener", domains)
+    map(x -> getfield(Protocol, Symbol(x)), domains)
+end
+
+
+function get_event_domain(event::Event)
+    split(event.name, ".") |> first |> Symbol |> x -> getfield(Protocol, x)
+end
+
 function (tab::Tab)(event::Event)
+
+    enabled_domains = get_event_domains(tab)
+    domain = get_event_domain(event)
+
+    if !in(domain, enabled_domains)
+        getfield(domain, :enable)() |> tab
+    end
 
     if haskey(tab.event_listeners, event.name) &&
         foreach(Signals.detach, tab.event_listeners[event.name])
@@ -158,7 +182,6 @@ function (tab::Tab)(event::Event)
     end
 
     # TODO It would be nice if events could be debounced and throttled
-
     tab.event_listeners[event.name] = (condition, when_signal, fn_signal)
     fn_signal
 end
@@ -181,9 +204,16 @@ function Base.delete!(tab::Tab, fn::Function)
             foreach(Signals.detach, tab.event_listeners[event.name])
             delete!(tab.event_listeners, event.name)
         end
+
+        enabled_domains = get_event_domains(tab)
+        domain = get_event_domain(event)
+
+        if !in(domain, enabled_domains)
+            getfield(domain, :disable)() |> tab
+        end
         event
     catch e
-        @warn "Pass a funciton that doesn't return an event"
+        @warn "Passsed a funciton that doesn't return an event"
     end
     tab
 end

@@ -66,9 +66,3 @@ end
         close(chrome)
     end
 end
-
-
-@testset "events" begin
-
-
-end
