@@ -1,7 +1,7 @@
 name = "Headless"
 uuid = "3f4dd3e2-90af-11e9-2445-29c580f6d3ea"
 authors = ["onetonfoot <onetonfoot@gmail.com>"]
-version = "0.1.0"
+version = "0.1.1"
 
 [deps]
 HTTP = "cd3eb016-35fb-5094-929b-558a96fad6f3"

@@ -64,7 +64,7 @@ function gettype(d, fallback="")
             "boolean" => "Bool"
             "number" => "AbstractFloat"
             "string" => "AbstractString"
-            x => x 
+            x => "UnknownType"
         end
         ":: " * s
     elseif haskey(d, "\$ref")
@@ -75,7 +75,7 @@ function gettype(d, fallback="")
     end
 end
 
-# TODO - add documentation for the command return types! 
+# TODO refactor code is dumb but does the job
 function create_args_doc(d)
 
     if !haskey(d, "parameters")
@@ -84,6 +84,13 @@ function create_args_doc(d)
 
     args = []
     optional = []
+    return_args = []
+    return_optional = []
+
+    arg_desc = ""
+    optional_desc = ""
+    return_arg_desc = ""
+    return_optional_desc = ""
 
     for param in d["parameters"]
         type = gettype(param)
@@ -99,8 +106,20 @@ function create_args_doc(d)
         haskey(param, "optional") ? push!(optional, doc) : push!(args, doc)
     end
 
-    arg_desc = ""
-    optional_desc = ""
+
+    for j in get(d, "returns", [])
+        type = gettype(j)
+        name = camel_to_snake(j["name"])
+        desc = if haskey(j, "description")
+            j["description"]
+        else
+            "this return type has no description in devtool protocol"
+        end
+
+        doc = "  * `$(name)` $(type) - $(desc)"
+
+        haskey(j, "optional") ? push!(return_optional, doc) : push!(return_args, doc)
+    end
 
     if !isempty(args)
         arg_desc *= "Args:\n"
@@ -108,11 +127,22 @@ function create_args_doc(d)
     end
 
     if !isempty(optional)
-        optional_desc *= "Optional:\n"
+        optional_desc *= "Arg optional:\n"
         optional_desc *= join(optional,  "\n")
     end
 
-    join([arg_desc, optional_desc], "\n\n") |> strip
+    if !isempty(return_args)
+        return_arg_desc *= "Returns:\n"
+        return_arg_desc *= join(return_args,  "\n")
+    end
+
+    if !isempty(return_optional)
+        return_optional_desc *= "Returns optional:\n"
+        return_optional_desc *= join(return_optional,  "\n")
+    end
+
+
+    join([arg_desc, optional_desc, return_arg_desc, return_optional_desc], "\n\n") |> strip
 end
 
 

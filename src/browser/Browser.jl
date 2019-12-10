@@ -34,13 +34,13 @@ end
 # https://www.chromium.org/developers/how-tos/run-chromium-with-flags
 
 """Starts an instance chrome browsers"""
-function Chrome(;headless=true, user_data_dir=tempdir(), port=9222, flags="")
+function Chrome(;headless=true, user_data_dir=tempdir(), port=9222)
 
     if !isportfree(port)
         PortAlreadyInUse(port)
     end
 
-    process = start(;headless=headless, user_data_dir=user_data_dir, port=port, flags=flags)
+    process = start(;headless=headless, user_data_dir=user_data_dir, port=port)
     ws_urls = get_ws_urls(port)
     tabs = Dict(Symbol("tab$i")=> Tab(ws_url) for (i, ws_url) in enumerate(ws_urls))
     Chrome(
@@ -66,7 +66,7 @@ function Base.show(io::IO, chrome::Chrome)
 end
 
 
-function start(;headless=true, user_data_dir=tempdir(), port=9222, flags="")
+function start(;headless=true, user_data_dir=tempdir(), port=9222)
     if isportfree(port)
 
         cmd = if islinux()
@@ -82,9 +82,14 @@ function start(;headless=true, user_data_dir=tempdir(), port=9222, flags="")
             error("You don't have the chrome binary in the default location - $(cmd.exec[1])")
         end
 
-        # Puppeteers defaults arguments can be found here
-        # https://github.com/puppeteer/puppeteer/blob/v2.0.0/lib/Launcher.js
-        cmd = `$cmd --remote-debugging-port=$port --no-first-run --user-data-dir=$user_data_dir $flags`
+        # More default flags can be found here
+        # https://github.com/puppeteer/puppeteer/blob/master/lib/Launcher.js
+
+        if !isdir(user_data_dir)
+            mkdir(user_data_dir)
+        end
+
+        cmd = `$cmd --no-first-run --remote-debugging-port=$port --user-data-dir=$user_data_dir`
 
         if headless
             cmd = `$cmd --headless`

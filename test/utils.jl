@@ -1,6 +1,6 @@
 using Base.Sys: islinux, isapple
 
-function kill_port(port=9222)
+function kill_port()
 
     cmd = if islinux()
         `lsof -i4`
@@ -9,7 +9,7 @@ function kill_port(port=9222)
     end
 
     try
-        cmd = pipeline(cmd, `grep :$(port)`)
+        cmd = pipeline(cmd, `grep :9222`)
         result = read(cmd, String) |>  rstrip |> x -> split(x, "\n")
 
         for line in result
@@ -23,4 +23,3 @@ function kill_port(port=9222)
 end
 
 kill_port()
-

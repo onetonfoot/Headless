@@ -1,16 +1,18 @@
-using Headless: Browser
+using Headless
 using Headless.Protocol: Page
-using Base64
+using Base64: base64decode
 
-chrome = Browser.Chrome(headless=true)
+chrome = Chrome(port=9300)
 
-json = Page.navigate("https://www.google.com") |> Page.print_to_pdf() |> chrome[:tab1]
-pdf = Base64.base64decode(json["data"])
+tab = opentab!(chrome, :tab2, "https://news.ycombinator.com")
+sleep(1)
+# Only works in headless mode atm
+# see https://bugs.chromium.org/p/chromium/issues/detail?id=753118
+base_string = tab(Page.print_to_pdf())["data"]
+bytes = base64decode(base_string)
 
-open("google.pdf","w") do f
-    write(f, pdf)
+open("hackernews.pdf","w") do f
+    write(f, bytes)
 end
-
-# rm("google.pdf")
 
 close(chrome)

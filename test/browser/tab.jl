@@ -1,11 +1,11 @@
 using Headless, Test
 using Headless: Browser
-using Headless.Protocol: Runtime, Page
+using Headless.Protocol: Runtime
 using Headless.Browser: JsError, TimedoutError
 
 # TODO first time browser opens without a user data folder it will ask for permisions
 # to be the default browser and doesn't create a single tab. This results
-# in the test falling the first time they are run. 
+# in the test falling the first time they are run
 
 @testset "tab" begin
     @testset "single tab" begin
@@ -46,11 +46,11 @@ end
         close(chrome)
     end
 
-    @testset "single timeout" begin
+    @testset "timeouts" begin
         chrome = Browser.Chrome()
         tab = chrome.tabs[:tab1]
 
-        js = x ->  """
+        js =  """
 
         function sleep(millis) {
             var date = new Date();
@@ -59,19 +59,11 @@ end
             while(curDate-date < millis);
         }
 
-        sleep($(x))
+        sleep(10000)
         """
 
-        @test_throws TimedoutError tab(Runtime.evaluate(js(5000)), timeout=1.0)
-
-        cmds = Runtime.evaluate(js(200)) |>
-        Runtime.evaluate(js(300)) |>
-        Runtime.evaluate(js(200)) |>
-        Runtime.evaluate(js(700)) 
-      
-        @test_throws TimedoutError tab(cmds, timeout=1.0)
+        @test_throws TimedoutError tab(Runtime.evaluate(js), timeout=1.0)
         close(chrome)
-
     end
 end
 
