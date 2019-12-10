@@ -140,32 +140,51 @@ function Base.show(io::IO, tab::Tab)
 end
 
 function (tab::Tab)(event::Event)
-    # TODO decide on behaviour in this case
-    haskey(tab.event_listeners, event.name) && @warn "Event listener $(event.name) already exists"
+
+    if haskey(tab.event_listeners, event.name) &&
+        foreach(Signals.detach, tab.event_listeners[event.name])
+    end
 
     condition = Signal(tab.output) do x
         haskey(x,"method") && x["method"] == event.name
     end
 
-    signal = when(condition, tab.output) do x
+    when_signal = when(condition, tab.output) do x
         x
     end
 
-    a_signal = async_signal(signal) do x
+    fn_signal = async_signal(when_signal) do x
         event.fn(x)
     end
 
     # TODO It would be nice if events could be debounced and throttled
 
-    tab.event_listeners[event.name] = (condition, a_signal)
-    a_signal
+    tab.event_listeners[event.name] = (condition, when_signal, fn_signal)
+    fn_signal
 end
 
+# maybe remove this since the other delete! feels more intuativew
 function Base.delete!(tab::Tab, event::Event)
     @pipe tab.event_listeners[event.name] |>
     indexin(_ , tab.output.children) |>
     filter(!isnothing, _) |>
     deleteat!(tab.output.children, _)
+    tab
+end
+
+function Base.delete!(tab::Tab, fn::Function)
+    try
+        event = fn() do x
+            x
+        end
+        if haskey(tab.event_listeners, event.name)
+            foreach(Signals.detach, tab.event_listeners[event.name])
+            delete!(tab.event_listeners, event.name)
+        end
+        event
+    catch e
+        @warn "Pass a funciton that doesn't return an event"
+    end
     tab
 end
 
