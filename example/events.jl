@@ -5,29 +5,17 @@ import JSON
 
 chrome = Browser.Chrome(headless=false)
 
-# Alterantive API allowing user to add time signals to the event struct
-# To achieve this would probaly have add a signals to field  event struct
-# and overload the debounce/throttle functions to add
-# there signal to the events struct
+response_received = Network.response_received() do res
+    @info "Reponse from call back"
+    res
+end |>  chrome[:tab1]
 
-# Network.response_received() do res
-#     @show res
-# end |> debounce(delay=2.0) |> chrome[:tab1]
-
-
-Network.response_received() do res
-    @show res
-end |> chrome[:tab1]
-
-DOM.enable() |> chrome[:tab1]
-
-doc_loaded = DOM.document_updated() do x
-    print("page fully loaded event fired")
+# Event return signals which can be further combined
+debounce(response_received, delay=3.0) do res
+    @info "Response from debounced signal $res"
 end
 
-doc_loaded |> chrome[:tab1]
+delete!(chrome[:tab1], Network.response_received)
+Page.navigate("https://google.com/") |> chrome[:tab1]
 
-# delete!(chrome[:tab1], doc_loaded)
-
-Page.navigate("https://news.ycombinator.com/") |> chrome[:tab1]
 close(chrome)
