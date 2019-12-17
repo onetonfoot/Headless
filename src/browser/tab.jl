@@ -5,7 +5,7 @@ import ..Protocol
 using Pipe
 
 const init_script = read(joinpath(@__DIR__, "init.js"),String)
-const timeout = 3
+const timeout = 30
 
 #This doesn't work becasuse can't throw a error from inside timedwait!
 function timederror(testcb::Function, error::Exception, secs::Number; pollint=0.1)
