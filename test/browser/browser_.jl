@@ -73,3 +73,17 @@ end
         end
     end
 end
+
+
+# TODO store the output of the process for debgugging chrome
+# for example when flags are passes the don't work
+# TODO add test for flags
+
+# port = 9222
+# user_data_dir = tempdir()
+# if !isdir(user_data_dir)
+#     mkdir(user_data_dir)
+# end
+# cmd =  `'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'`
+# cmd = `$cmd --no-first-run --remote-debugging-port=$port --user-data-dir=$user_data_dir`
+# pipeline(cmd, stdout=devnull, stderr=devnull) |> open

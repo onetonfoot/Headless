@@ -66,7 +66,7 @@ function Base.show(io::IO, chrome::Chrome)
 end
 
 
-function start(;headless=true, user_data_dir=tempdir(), port=9222)
+function start(;headless=true, user_data_dir=tempdir(), port=9222, flags="")
     if isportfree(port)
 
         cmd = if islinux()
