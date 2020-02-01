@@ -20,6 +20,8 @@ primatives = types[map(x->!(x["type"] == "object" || x["type"] == "array"), type
 unique!(primatives)
 # @assert length(types) == length(primatives) + length(complex)
 
+@info (length(complex) + length(primatives))
+
 # DEFINE  PRIMATIIVE TYPES
 
 primative2expr = Dict()
@@ -65,9 +67,10 @@ string2datatype["number"] = Float64
 string2datatype["boolean"] = Bool
 string2datatype["object"] = Dict{String,String}
 
+@info length(string2datatype)
+
 
 function create_struct_data(complex_datatype)
-
     global string2datatype
 
     l = map(complex_datatype["properties"]) do d
@@ -77,7 +80,9 @@ function create_struct_data(complex_datatype)
             Dict("\$ref" => type) =>  string2datatype[type]
             Dict("type" => type) => string2datatype[type]
         end
-        name = Symbol(d["name"])
+        # TODO is this needed?!
+        name = split(d["name"], ".")[end]
+        name = Symbol(name)
         name => datatype
     end |> x->Dict(x...)
     Symbol(complex_datatype["id"]), l
@@ -120,7 +125,7 @@ function can_define(complex_datatype)
 end
 
 function get_array_type(::Type{Array{T,1}}) where T
-    T
+    return T
 end
 
 function create_struct_expr(struct_name::Symbol, fields::Dict{Symbol,DataType}, mutable = false)
@@ -129,6 +134,8 @@ function create_struct_expr(struct_name::Symbol, fields::Dict{Symbol,DataType}, 
         if v <: Vector
             t = get_array_type(v)
             Expr(:(::), k, Expr(:curly, :Array, Symbol(t), 1))
+        elseif v <: Dict
+            Expr(:(::), k, Expr(:curly, :Dict, :String, :String))
         else
             Expr(:(::), k, Symbol(v))   
         end
@@ -160,24 +167,18 @@ while !isempty(complex)
     if can_define(c)
         name, fields = create_struct_data(c)
         expr = create_struct_expr(name, fields)
-        # eval(expr)
-        # string2datatype[String(name)] = eval(name)
-        push!(struct_expr, (name, fields))
+        try 
+            eval(expr)
+            string2datatype[String(name)] = eval(name)
+        catch e
+                # @warn e
+                # @info expr
+        end
     else
-        push!(tmp_complex, c)
+        @info c["id"] 
     end
 end
 
+# Still misssing round 70 types :/
+@info  length(string2datatype) 
 
-
-for (idx, e) in enumerate(struct_expr)
-    @info idx
-    eval(e)
-end
-
-
-
-
-if [1,2,2] isa Array
-    print("asdfa")
-end
