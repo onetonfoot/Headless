@@ -23,7 +23,6 @@ end
 
 mutable struct Chrome
     process
-    # host # TODO Would be nice launch on something that's not localhost
     port
     tabs
     user_data_dir
@@ -34,17 +33,16 @@ end
 # https://www.chromium.org/developers/how-tos/run-chromium-with-flags
 
 """Starts an instance chrome browsers"""
-function Chrome(;headless=true, user_data_dir=tempdir(), port=9222, flags="")
+function Chrome(;headless = true, user_data_dir = tempdir(), port = 9222, flags = "")
 
     if !isportfree(port)
         PortAlreadyInUse(port)
     end
 
-    process = start(;headless=headless, user_data_dir=user_data_dir, port=port, flags=flags)
+    process = start(;headless = headless, user_data_dir = user_data_dir, port = port, flags = flags)
     ws_urls = get_ws_urls(port)
-    tabs = Dict(Symbol("tab$i")=> Tab(ws_url) for (i, ws_url) in enumerate(ws_urls))
-    Chrome(
-        process,
+    tabs = Dict(Symbol("tab$i") => Tab(ws_url) for (i, ws_url) in enumerate(ws_urls))
+    Chrome(process,
         port,
         tabs,
         user_data_dir,
@@ -58,7 +56,7 @@ tabnames(chrome::Chrome) = collect(keys(chrome.tabs))
 
 
 function Base.show(io::IO, chrome::Chrome)
-    #TODO make this prettier :/
+    # TODO make this prettier :/
     print(io, """Chrome:
                 - running - $(process_running(chrome.process))
                 - port - $(chrome.port)
@@ -66,7 +64,7 @@ function Base.show(io::IO, chrome::Chrome)
 end
 
 
-function start(;headless=true, user_data_dir=tempdir(), port=9222, flags="")
+function start(;headless = true, user_data_dir = tempdir(), port = 9222, flags = "")
     if isportfree(port)
 
         cmd = if islinux()
@@ -96,7 +94,7 @@ function start(;headless=true, user_data_dir=tempdir(), port=9222, flags="")
             cmd = `$cmd --headless`
         end
 
-        process = pipeline(cmd, stdout=devnull, stderr=devnull) |> open
+        process = pipeline(cmd, stdout = devnull, stderr = devnull) |> open
 
         while !process_running(process)
             sleep(0.01)
@@ -130,16 +128,16 @@ function opentab!(browser::Chrome, tabname::Symbol, url)
     tab
 end
 
-opentab!(browser::Chrome, tabname::Symbol) = opentab!(browser,tabname, "")
+opentab!(browser::Chrome, tabname::Symbol) = opentab!(browser, tabname, "")
 
-function closetab!(browser::Chrome, tabname::Symbol; timeout=3)
+function closetab!(browser::Chrome, tabname::Symbol; timeout = 3)
 
     try
         tab = browser.tabs[tabname]
         url = "http://localhost:$(browser.port)/json/close/$(tab.id)"
         response = HTTP.get(url)
         @assert response.body |> String == "Target is closing"
-        close(tab; timeout=timeout)
+        close(tab; timeout = timeout)
         delete!(browser.tabs, tabname)
         browser
     catch e
@@ -152,7 +150,7 @@ function closetab!(browser::Chrome, tabname::Symbol; timeout=3)
 end
 
 """Used to bring the given tab name into focus"""
-function activatetab!(browser, tabname::Symbol; timeout=3)
+function activatetab!(browser, tabname::Symbol; timeout = 3)
     try
         tab = browser.tabs[tabname]
         url = "http://localhost:$(browser.port)/json/activate/$(tab.id)"

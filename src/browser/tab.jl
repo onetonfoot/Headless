@@ -4,12 +4,12 @@ using ..Protocol: Command, Event, Runtime, Page
 import ..Protocol
 using Pipe
 
-const init_script = read(joinpath(@__DIR__, "init.js"),String)
+const init_script = read(joinpath(@__DIR__, "init.js"), String)
 const timeout = 30
 
-#This doesn't work becasuse can't throw a error from inside timedwait!
-function timederror(testcb::Function, error::Exception, secs::Number; pollint=0.1)
-    result = timedwait(testcb, float(secs); pollint=pollint)
+# This doesn't work becasuse can't throw a error from inside timedwait!
+function timederror(testcb::Function, error::Exception, secs::Number; pollint = 0.1)
+    result = timedwait(testcb, float(secs); pollint = pollint)
     result != :ok && throw(error)
     true
 end
@@ -23,14 +23,14 @@ mutable struct Tab
     event_listeners
 end
 
-function Tab(ws_url::T; init_script=init_script) where T <: AbstractString
+function Tab(ws_url::T; init_script = init_script) where T <: AbstractString
 
     init_cmd = Page.add_script_to_evaluate_on_new_document(init_script)
     input = Signal(init_cmd; strict_push = true)
     output = Signal(:start_signal; strict_push = true)
 
     process = ws_open(ws_url, input, output)
-    id = split(ws_url,"/")[end]
+    id = split(ws_url, "/")[end]
     command_ids = Dict()
     event_listeners = Dict()
     tab = Tab(process, input, output, id, command_ids, event_listeners)
@@ -93,7 +93,7 @@ function handle_result(x)
     end
 end
 
-function (tab::Tab)(cmd::Command; timeout=timeout)
+function (tab::Tab)(cmd::Command; timeout = timeout)
 
     if istaskdone(tab.process)
         error("Tab closed")
@@ -110,7 +110,7 @@ function (tab::Tab)(cmd::Command; timeout=timeout)
         tab.command_ids[cmd.id] = nothing
         tab.input(cmd)
         result = nothing
-        (t, time_taken , _) = @timed timedwait(float(remaining_time)) do
+        (t, time_taken, _) = @timed timedwait(float(remaining_time)) do
             result = tab.command_ids[cmd.id]
             !isnothing(result)
         end
@@ -134,26 +134,23 @@ function (tab::Tab)(cmd::Command; timeout=timeout)
     end
 end
 
-# TODO more informative show method may require storing tabname in tab struct?
 function Base.show(io::IO, tab::Tab)
     color = istaskdone(tab.process) ? :red : :green
-    printstyled(io, "tab", color=color)
+    printstyled(io, "tab", color = color)
 end
-
-
 
 function get_event_domains(tab::Tab)
     domains = map(collect(keys(tab.event_listeners))) do x
         split(x, ".") |> first
     end |> unique
 
-    filter!(x -> x != "output_listener", domains)
-    map(x -> getfield(Protocol, Symbol(x)), domains)
+    filter!(x->x != "output_listener", domains)
+    map(x->getfield(Protocol, Symbol(x)), domains)
 end
 
 
 function get_event_domain(event::Event)
-    split(event.name, ".") |> first |> Symbol |> x -> getfield(Protocol, x)
+    split(event.name, ".") |> first |> Symbol |> x->getfield(Protocol, x)
 end
 
 function (tab::Tab)(event::Event)
@@ -170,7 +167,7 @@ function (tab::Tab)(event::Event)
     end
 
     condition = Signal(tab.output) do x
-        haskey(x,"method") && x["method"] == event.name
+        haskey(x, "method") && x["method"] == event.name
     end
 
     when_signal = when(condition, tab.output) do x
@@ -186,10 +183,9 @@ function (tab::Tab)(event::Event)
     fn_signal
 end
 
-# maybe remove this since the other delete! feels more intuativew
 function Base.delete!(tab::Tab, event::Event)
     @pipe tab.event_listeners[event.name] |>
-    indexin(_ , tab.output.children) |>
+    indexin(_, tab.output.children) |>
     filter(!isnothing, _) |>
     deleteat!(tab.output.children, _)
     tab
@@ -218,8 +214,8 @@ function Base.delete!(tab::Tab, fn::Function)
     tab
 end
 
-function close(tab::Tab; timeout=timeout)
-    @async Base.throwto(tab.process,InterruptException())
+function close(tab::Tab; timeout = timeout)
+    @async Base.throwto(tab.process, InterruptException())
     err = ErrorException("tab didn't close")
     timederror(err, timeout) do
         istaskdone(tab.process)
@@ -231,23 +227,19 @@ function add_port(url, port)
     replace(url, "/devtools" => ":$port/devtools")
 end
 
-# TODO - the ws_url for a browser could be not localhost
-# allowing you to control headless browsers running on multiple machines
-# this would be great for web scrcapping
-
 function get_ws_urls(port)
     json = get_tab_json(port)
-    map(x -> add_port(x["webSocketDebuggerUrl"], port), json)
+    map(x->add_port(x["webSocketDebuggerUrl"], port), json)
 end
 
 function get_tab_json(port)
     url = "http://localhost:$(port)/json/list"
     json = HTTP.get(url).body |>  String |>  JSON.parse
-    filter!(x -> x["type"] == "page", json)
+    filter!(x->x["type"] == "page", json)
     json
 end
 
-function ws_open(url, input, output; timeout=timeout)
+function ws_open(url, input, output; timeout = timeout)
 
     task = @async WebSockets.open(url) do ws
         sender = Signal(input) do cmd
@@ -256,7 +248,7 @@ function ws_open(url, input, output; timeout=timeout)
         while !eof(ws)
             data = readavailable(ws)
             data |> String |> JSON.parse |> output
-       end
+        end
     end
 
     err = ErrorException("timed out opening ws")

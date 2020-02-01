@@ -7,7 +7,6 @@ const events = filter(x->haskey(x[2], "events"), protocols)
 struct Event
     fn::Function
     name
-    # signals # signals should be applyed after the when condition is met
 end
 
 

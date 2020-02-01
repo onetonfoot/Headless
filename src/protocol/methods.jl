@@ -2,12 +2,10 @@ using Base.Meta, MLStyle, Pipe
 import JSON
 using .Utils: camel_to_sym
 
-const protocols = @pipe read(joinpath(@__DIR__,"./protocol.json") ,String) |>
+const protocols = @pipe read(joinpath(@__DIR__, "./protocol.json"), String) |>
     JSON.parse |>
     getindex(_,  "domains") |>
-    Dict(p["domain"] =>p for p in _)
-
-# TODO Since a commands is a doubley linked list should implement iteration traits
+    Dict(p["domain"] => p for p in _)
 
 mutable struct Command
     id
@@ -26,19 +24,19 @@ function (c2::Command)(c1::Command)
 end
 
 function JSON.lower(cmd::Command)
-    params = filter(p ->  !isnothing(p[2]), cmd.params)
+    params = filter(p->!isnothing(p[2]), cmd.params)
     Dict(:id     => cmd.id,
          :method => cmd.method,
          :params => params)
 end
 
 function has_optional_args(d)
-    haskey(d,"parameters") || return false
-    map( x -> haskey(x, "optional") ,d["parameters"]) |> any
+    haskey(d, "parameters") || return false
+    map(x->haskey(x, "optional"), d["parameters"]) |> any
 end
 
 is_optional_arg(d) = haskey(d, "optional")
-get_arg_names(d) = map(x -> x["name"], d["parameters"])
+get_arg_names(d) = map(x->x["name"], d["parameters"])
 
 function create_command(d, domain_name)
 
@@ -47,8 +45,8 @@ function create_command(d, domain_name)
 
     args, kwargs = if haskey(d, "parameters")
         params = d["parameters"]
-        args = map(x -> x["name"], filter(!is_optional_arg, params))
-        kwargs = map(x-> x["name"], filter(is_optional_arg, params))
+        args = map(x->x["name"], filter(!is_optional_arg, params))
+        kwargs = map(x->x["name"], filter(is_optional_arg, params))
         args, kwargs
     else
         [], []
@@ -56,12 +54,10 @@ function create_command(d, domain_name)
 
     kwpairs = [Expr(:kw, camel_to_sym(k), :nothing) for k in kwargs ]
     pairs = [Expr(:call, :(=>), k, camel_to_sym(k)) for k in [args; kwargs]]
-    #TODO temporarly put type in dictnary until can figure out how to
-    #pass optional arguments to Fetch.enable()
     dict = Expr(:call, Expr(:curly, :Dict, :String, :Any), pairs...)
 
     quote
-        function $fname( $(camel_to_sym.(args)...) ;  $(kwpairs...))
+        function $fname($(camel_to_sym.(args)...) ;  $(kwpairs...))
             Command(Int(rand(UInt16)), $method, $dict)
         end
 
