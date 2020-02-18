@@ -1,0 +1,4 @@
+{
+    "julia.runLinter": false,
+    "editor.formatOnSave": false
+}

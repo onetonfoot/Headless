@@ -43,6 +43,12 @@ git-tree-sha1 = "5c49dab19938b119fe204fd7d7e8e174f4e9c68b"
 uuid = "cd3eb016-35fb-5094-929b-558a96fad6f3"
 version = "0.8.8"
 
+[[InfoZIP]]
+deps = ["Test"]
+git-tree-sha1 = "087ad2b31892c028b7a56e0a502b13d91faa4b96"
+uuid = "f4508453-b816-52ab-a864-26fc7f6211fc"
+version = "0.2.0"
+
 [[IniFile]]
 deps = ["Test"]
 git-tree-sha1 = "098e4d2c533924c921f9f9847274f2ad89e018b8"
@@ -61,9 +67,9 @@ version = "0.21.0"
 
 [[JuliaInterpreter]]
 deps = ["CodeTracking", "InteractiveUtils", "Random", "UUIDs"]
-git-tree-sha1 = "a4f675340a109713f74c47a2b499df06f800c8d0"
+git-tree-sha1 = "6541c738c4f454a48645678e0bbffcd8564fb2ad"
 uuid = "aa1ae85d-cabe-5617-a682-6adf51b2e16a"
-version = "0.7.8"
+version = "0.7.12"
 
 [[LibGit2]]
 uuid = "76f85450-5226-5b5a-8eaa-529ad045b433"
@@ -80,9 +86,9 @@ uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
 
 [[LoweredCodeUtils]]
 deps = ["JuliaInterpreter"]
-git-tree-sha1 = "b416a30717e9109fffd4d9869f2f962b5dca3162"
+git-tree-sha1 = "1c41621653250b2824b6e664ac5bd805558aeff9"
 uuid = "6f1432cf-f94c-5a45-995e-cdbf5db27b0b"
-version = "0.4.2"
+version = "0.4.3"
 
 [[MLStyle]]
 git-tree-sha1 = "67f9a88611bc79f992aa705d9bbc833a2547dec7"
@@ -108,6 +114,12 @@ version = "0.4.3"
 [[Mmap]]
 uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 
+[[NodeJS]]
+deps = ["Pkg"]
+git-tree-sha1 = "350ac618f41958e6e0f6b0d2005ae4547eb1b503"
+uuid = "2bd173c7-0d6d-553b-b6af-13a54713934c"
+version = "1.1.1"
+
 [[OrderedCollections]]
 deps = ["Random", "Serialization", "Test"]
 git-tree-sha1 = "c4c13474d23c60d20a67b217f1d7f22a40edf8f1"
@@ -126,7 +138,7 @@ uuid = "b98c9c47-44ae-5843-9183-064241ee97a0"
 version = "1.2.0"
 
 [[Pkg]]
-deps = ["Dates", "LibGit2", "Libdl", "Logging", "Markdown", "Printf", "REPL", "Random", "SHA", "UUIDs"]
+deps = ["Dates", "LibGit2", "Libdl", "Logging", "Markdown", "Printf", "REPL", "Random", "SHA", "Test", "UUIDs"]
 uuid = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 
 [[Printf]]
@@ -192,3 +204,15 @@ uuid = "cf7118a7-6976-5b1a-9a39-7adc72f591a4"
 
 [[Unicode]]
 uuid = "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5"
+
+[[ZipFile]]
+deps = ["Libdl", "Printf", "Zlib_jll"]
+git-tree-sha1 = "8748302cfdec02c4ae9c97b112cf10003f7f767f"
+uuid = "a5390f91-8eb1-5f08-bee0-b1d1ffed6cea"
+version = "0.9.1"
+
+[[Zlib_jll]]
+deps = ["Libdl", "Pkg"]
+git-tree-sha1 = "fd36a6739e256527287c5444960d0266712cd49e"
+uuid = "83775a58-1f1d-513f-b197-d71354ab007a"
+version = "1.2.11+8"

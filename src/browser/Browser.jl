@@ -8,6 +8,7 @@ import Base.Sys: islinux, isapple
 export opentab!, activatetab!, closetab!, tabnames, Chrome
 
 include("tab.jl")
+include("chrome_install.jl")
 
 struct PortAlreadyInUse <: Exception
     port
